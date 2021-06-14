@@ -1,0 +1,21 @@
+# tenant-disallow-policies.yaml
+APIVersion: 1
+label: "Disallow all traffic from and to {{ .Values.destination.zone }}/{{.Values.destination.tenant }}"
+data:
+ networkaccesspolicies:
+ - name: Disallow traffic from anywhere to {{ .Values.destination.zone }}/{{ .Values.destination.tenant }}
+   action: "Reject"
+   logsEnabled: true
+   subject:
+   - - "$identity=processingunit"
+     - "$identity=externalnetwork"
+   object:
+   - - "$namespace=/{{ .Values.account }}/{{ .Values.destination.zone }}/{{ .Values.destination.tenant}}/*"
+ - name: Disallow traffic from {{ .Values.destination.zone }}/{{ .Values.destination.tenant }} to anywhere
+   action: "Reject"
+   logsEnabled: true
+   subject:
+   - - "$namespace=/{{ .Values.account }}/{{ .Values.destination.zone }}/{{ .Values.destination.tenant}}/*"
+   object:
+   - - "$identity=processingunit"
+     - "$identity=externalnetwork"

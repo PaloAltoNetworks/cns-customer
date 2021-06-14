@@ -1,0 +1,76 @@
+# Gopkg.toml example
+#
+# Refer to https://golang.github.io/dep/docs/Gopkg.toml.html
+# for detailed Gopkg.toml documentation.
+#
+# required = ["github.com/user/thing/cmd/thing"]
+# ignored = ["github.com/user/project/pkgX", "bitbucket.org/user/project/pkgA/pkgY"]
+#
+# [[constraint]]
+#   name = "github.com/user/project"
+#   version = "1.0.0"
+#
+# [[constraint]]
+#   name = "github.com/user/project2"
+#   branch = "dev"
+#   source = "github.com/myfork/project2"
+#
+# [[override]]
+#   name = "github.com/x/y"
+#   version = "2.4.0"
+#
+# [prune]
+#   non-go = false
+#   go-tests = true
+#   unused-packages = true
+
+
+#
+# Aporeto Override
+#
+[[override]]
+  branch = "master"
+  name = "go.aporeto.io/addedeffect"
+
+[[override]]
+  branch = "master"
+  name = "go.aporeto.io/elemental"
+
+[[override]]
+  branch = "master"
+  name = "go.aporeto.io/underwater"
+
+[[override]]
+  branch = "master"
+  name = "go.aporeto.io/wsc"
+
+
+#
+# Aporeto Constraints
+#
+[[constraint]]
+  branch = "master"
+  name = "go.aporeto.io/apocheck"
+
+[[constraint]]
+  branch = "master"
+  name = "go.aporeto.io/gaia"
+
+[[constraint]]
+  branch = "master"
+  name = "go.aporeto.io/manipulate"
+
+[[constraint]]
+  branch = "master"
+  name = "go.aporeto.io/midgard-lib"
+
+[[constraint]]
+  branch = "master"
+  name = "go.aporeto.io/tg"
+  
+#
+# Prune options
+#
+[prune]
+  go-tests = true
+  unused-packages = true

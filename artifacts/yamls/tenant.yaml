@@ -1,0 +1,70 @@
+# tenant.yaml
+APIVersion: 1
+label: default-policies-{{ .Values.tenant }}
+data:
+ externalnetworks:
+ - name: Any UDP
+   entries:
+   - 0.0.0.0/0
+   protocols:
+   - udp
+   ports:
+   - "1:65535"
+   associatedTags:
+   - extnet:name=any-udp
+
+ - name: Any TCP
+   entries:
+   - 0.0.0.0/0
+   protocols:
+   - tcp
+   ports:
+   - "1:65535"
+   associatedTags:
+   - extnet:name=any-tcp
+
+ hostservices:
+ - name: Protection
+   hostModeEnabled: true
+   associatedTags:
+   - hs:name=host-protection
+
+ - name: SSH
+   services:
+   - tcp/22
+   associatedTags:
+   - hs:name=ssh
+
+ hostservicemappingpolicies:
+ - name: Enforcerd wraps Host and SSH access
+   subject:
+   - - "$namespace=/{{ .Values.account }}/{{ .Values.zone }}/{{ .Values.tenant}}/*"
+     - "$identity=enforcer"
+   object:
+   - - "$namespace=/{{ .Values.account }}/{{ .Values.zone }}/{{ .Values.tenant}}/*"
+     - "hs:name=host-protection"
+   - - "$namespace=/{{ .Values.account }}/{{ .Values.zone }}/{{ .Values.tenant}}/*"
+     - "hs:name=ssh"
+
+ networkaccesspolicies:
+ - name: Allow traffic to Any TCP and UDP
+   action: "Allow"
+   logsEnabled: true
+   subject:
+   - - "$namespace=/{{ .Values.account }}/{{ .Values.zone }}/{{ .Values.tenant}}/*"
+     - "$identity=processingunit"
+   object:
+   - - "$namespace=/{{ .Values.account }}/{{ .Values.zone }}/{{ .Values.tenant}}/*"
+     - "extnet:name=any-tcp"
+   - - "$namespace=/{{ .Values.account }}/{{ .Values.zone }}/{{ .Values.tenant}}/*"
+     - "extnet:name=any-udp"
+
+ - name: Allow SSH Access from Any TCP
+   action: "Allow"
+   logsEnabled: true
+   subject:
+   - - "$namespace=/{{ .Values.account }}/{{ .Values.zone }}/{{ .Values.tenant}}/*"
+     - "extnet:name=any-tcp"
+   object:
+   - - "$namespace=/{{ .Values.account }}/{{ .Values.zone }}/{{ .Values.tenant}}/*"
+     - "hs:name=ssh"

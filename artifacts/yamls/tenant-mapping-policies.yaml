@@ -1,0 +1,39 @@
+# tenant-mapping-policies.yaml
+APIVersion: 1
+label: enforcer-policies-{{ .Values.tenant }}
+data:
+ enforcerprofiles:
+ - name: Enforcer Profile for rail={{ .Values.rail }} with tag rail={{ .Values.rail }}
+   normalizedTags: 
+   - "rail={{ .Values.rail }}"
+   associatedTags: 
+   - "rail={{ .Values.rail }}"
+ enforcerprofilemappingpolicies:
+ - name: Enforcer with tag rail={{ .Values.rail }} uses profile with tag rail={{ .Values.rail }}
+   subject:
+   - - "$namespace=/{{ .Values.account }}/{{ .Values.zone }}/{{ .Values.tenant}}/*"
+     - "$identity=enforcer"
+     - "rail={{ .Values.rail }}"
+   object:
+   - - "$namespace=/{{ .Values.account }}/{{ .Values.zone }}/{{ .Values.tenant}}/*"
+     - "$identity=enforcerprofile"
+     - "rail={{ .Values.rail }}"
+
+ hostservicemappingpolicies:
+ - name: Enforcer with tag rail={{ .Values.rail }} uses host services with tag rail={{ .Values.rail }}
+   subject:
+   - - "$namespace=/{{ .Values.account }}/{{ .Values.zone }}/{{ .Values.tenant}}/*"
+     - "$identity=enforcer"
+     - "rail={{ .Values.rail }}"
+   object:
+   - - "$namespace=/{{ .Values.account }}/{{ .Values.zone }}/{{ .Values.tenant}}/*"
+     - "$identity=hostservice"
+     - "rail={{ .Values.rail }}"
+
+ namespacemappingpolicies:
+ - name: Enforcer with tag rail={{ .Values.rail }} should go to the namespace {{ .Values.rail }}
+   subject:
+   - - "$namespace=/{{ .Values.account }}/{{ .Values.zone }}/{{ .Values.tenant}}/*"
+     - "$identity=enforcer"
+     - "rail={{ .Values.rail }}"
+   mappedNamespace: "/{{ .Values.account }}/{{ .Values.zone }}/{{ .Values.tenant}}/{{ .Values.rail }}"

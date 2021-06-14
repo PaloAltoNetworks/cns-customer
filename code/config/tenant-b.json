@@ -1,0 +1,36 @@
+{
+    "app-cred-path": "/Users/satyam/Downloads/satyam-sandbox.json",
+    "account": "satyam",
+    "zone": "sensitive",
+    "tenant": "tenant-b",
+    "enforcer-app-cred-path": ".",
+    "tenant-auth-policy-claims": [
+        [
+            "@auth:realm=oidc",
+            "@auth:organization=cns-customer",
+            "@auth:group=tenant-b"
+        ]
+    ],
+    "services": [
+        {
+            "name": "https",
+            "rail": "protected",
+            "definition": [
+                "tcp/443"
+            ]
+        }
+    ],
+    "exception-policies": [
+        {
+            "name": "communicate with different zone: dmz",
+            "subject-tenant": "/satyam/sensitive/tenant-b",
+            "subject-tags": [
+                "$namespace=/satyam/sensitive/tenant-b/protected/*"
+            ],
+            "object-tenant": "/satyam/dmz/tenant-a",
+            "object-tags": [
+                "$namespace=/satyam/dmz/tenant-a/protected/*"
+            ]
+        }
+    ]
+}

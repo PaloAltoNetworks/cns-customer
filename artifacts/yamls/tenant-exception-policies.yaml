@@ -1,0 +1,14 @@
+# tenant-exception-policies.yaml
+APIVersion: 1
+label: "{{ .Values.source.zone }}/{{ .Values.source.tenant }}/{{ .Values.source.rail }} to {{ .Values.destination.zone }}/{{ .Values.destination.tenant }}/{{ .Values.destination.rail }}"
+data:
+ networkaccesspolicies:
+ - name: Allow traffic from {{ .Values.source.zone }}/{{ .Values.source.tenant }}/{{ .Values.source.rail }} to {{ .Values.destination.zone }}/{{ .Values.destination.tenant }}/{{ .Values.destination.rail }}
+   action: "Allow"
+   logsEnabled: true
+   subject:
+   - - "$namespace=/{{ .Values.account }}/{{ .Values.source.zone }}/{{ .Values.source.tenant}}/{{ .Values.source.rail}}"
+     - "$identity=processingunit"
+   object:
+   - - "$namespace=/{{ .Values.account }}/{{ .Values.destination.zone }}/{{ .Values.destination.tenant}}/{{ .Values.destination.rail}}"
+     - "$identity=processingunit"
