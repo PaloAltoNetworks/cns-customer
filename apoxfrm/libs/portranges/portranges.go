@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/PaloAltoNetworks/apoxfrm/portspec"
+	"github.com/PaloAltoNetworks/cns-customer/apoxfrm/libs/portspec"
 )
 
 // TrimPortRange returns ranges such that if no entries in exist in filteredPortMap, the

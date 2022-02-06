@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/PaloAltoNetworks/apoxfrm/libs/portranges"
-	"github.com/PaloAltoNetworks/apoxfrm/libs/portspec"
+	"github.com/PaloAltoNetworks/cns-customer/apoxfrm/libs/portranges"
+	"github.com/PaloAltoNetworks/cns-customer/apoxfrm/libs/portspec"
 	"go.aporeto.io/gaia"
 	"go.aporeto.io/gaia/protocols"
 	"go.uber.org/zap"
