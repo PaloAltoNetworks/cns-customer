@@ -1,11 +1,11 @@
-package main
+package networkpolicies
 
 import (
 	"fmt"
 	"strings"
 
-	"github.com/PaloAltoNetworks/apoxfrm/portranges"
-	"github.com/PaloAltoNetworks/apoxfrm/portspec"
+	"github.com/PaloAltoNetworks/apoxfrm/libs/portranges"
+	"github.com/PaloAltoNetworks/apoxfrm/libs/portspec"
 	"go.aporeto.io/gaia"
 	"go.aporeto.io/gaia/protocols"
 	"go.uber.org/zap"

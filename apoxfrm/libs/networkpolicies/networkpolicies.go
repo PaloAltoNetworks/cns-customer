@@ -1,4 +1,4 @@
-package main
+package networkpolicies
 
 import (
 	"fmt"
@@ -8,6 +8,7 @@ import (
 	"go.aporeto.io/gaia"
 )
 
+// netPolInfo stores all information related to a network policy
 type netPolInfo struct {
 	// Network Policy
 	netpol *gaia.NetworkAccessPolicy
@@ -302,7 +303,8 @@ func (n *netPolInfo) xfrm() {
 	}
 }
 
-func getNetPolInfo(netpol *gaia.NetworkAccessPolicy, extnetList gaia.ExternalNetworksList) (*netPolInfo, error) {
+// Get returns network policy information
+func Get(netpol *gaia.NetworkAccessPolicy, extnetList gaia.ExternalNetworksList) ([]map[string]interface{}, error) {
 
 	var err error
 	n := newNetPolInfo(netpol)
@@ -311,5 +313,5 @@ func getNetPolInfo(netpol *gaia.NetworkAccessPolicy, extnetList gaia.ExternalNet
 		err = fmt.Errorf("policy: %s warnings/errors found", netpol.Name)
 	}
 	n.xfrm()
-	return n, err
+	return n.transformations, err
 }
