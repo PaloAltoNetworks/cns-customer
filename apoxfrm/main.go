@@ -5,44 +5,16 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/PaloAltoNetworks/cns-customer/apoxfrm/libs/externalnetwork"
 	"github.com/PaloAltoNetworks/cns-customer/apoxfrm/libs/networkpolicies"
+	"github.com/PaloAltoNetworks/cns-customer/apoxfrm/libs/utils"
 	"github.com/ghodss/yaml"
 	"github.com/mitchellh/mapstructure"
 	"go.uber.org/zap"
 
 	"go.aporeto.io/gaia"
 )
-
-const extnetNamePrefix = "$name="
-const migrationSuffix = "-v2"
-
-var extnetPrefix string
-
-func extnetsFromTags(policyNamespace string, tags []string, eList gaia.ExternalNetworksList) (extnetList gaia.ExternalNetworksList) {
-
-	for _, e := range eList {
-
-		if policyNamespace != e.Namespace {
-			// Use external network if its defined in a hierarchy higher than policy namespace
-			if !strings.HasPrefix(policyNamespace, e.Namespace+"/") {
-				continue
-			}
-			// And the external network is propagated.
-			if !e.Propagate {
-				continue
-			}
-		}
-
-		// The external network in either in same namespace as policy or at a higher level namespace with propagate=true
-		if match(tags, e.NormalizedTags) {
-			extnetList = append(extnetList, e)
-		}
-	}
-	return
-}
 
 func xfrmNetPols(file string, netpols []map[string]interface{}, extnetList gaia.ExternalNetworksList) (xnetrulesetpolicies []map[string]interface{}) {
 
@@ -91,7 +63,7 @@ func xfrmExtNets(file string, extnets, extraextnets []map[string]interface{}) (e
 		extnetList = append(extnetList, extnet)
 
 		// Process the external network - Create a v2 copy, add suffix to name, remove protocol and ports
-		v2extnet := externalnetwork.Transform(extnet, migrationSuffix, extnetPrefix)
+		v2extnet := externalnetwork.Transform(extnet)
 
 		zap.L().Info(
 			"External Network",
@@ -152,7 +124,7 @@ func process(dir, file string, extraFiles []string) {
 	xnetrulesetpolicies := xfrmNetPols(file, netpols, gextnets)
 
 	importData := gaia.NewImport()
-	importData.Data.Label = exportedData.Label + migrationSuffix
+	importData.Data.Label = exportedData.Label + utils.MigrationSuffix
 	importData.Data.APIVersion = 1
 	importData.Data.Data["externalnetworks"] = xextnets
 	importData.Data.Data["networkrulesetpolicies"] = xnetrulesetpolicies
@@ -183,7 +155,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	extnetPrefix = *prefix
+	utils.ExtnetPrefix = *prefix
 
 	process("configs", "root.yaml", []string{})
 	process("configs", "zone.yaml", []string{"root.yaml"})

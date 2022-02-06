@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/PaloAltoNetworks/cns-customer/apoxfrm/libs/utils"
 	"github.com/mitchellh/mapstructure"
 	"go.aporeto.io/gaia"
 )
@@ -216,7 +217,7 @@ func (n *netPolInfo) xfrm() {
 	n.outgoing.Disabled = n.netpol.Disabled
 	n.outgoing.Fallback = n.netpol.Fallback
 	n.outgoing.Metadata = n.netpol.Metadata
-	n.outgoing.Name = n.netpol.Name + migrationSuffix
+	n.outgoing.Name = n.netpol.Name + utils.MigrationSuffix
 	n.outgoing.Namespace = n.netpol.Namespace
 	n.outgoing.NormalizedTags = n.netpol.NormalizedTags
 	n.outgoing.Propagate = n.netpol.Propagate

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/PaloAltoNetworks/cns-customer/apoxfrm/libs/utils"
 	"github.com/mitchellh/mapstructure"
 	"go.aporeto.io/gaia"
 )
@@ -24,16 +25,16 @@ func Decode(e map[string]interface{}) (*gaia.ExternalNetwork, error) {
 }
 
 // Transform a gaia.ExternalNetwork to a v2 version.
-func Transform(extnet *gaia.ExternalNetwork, migrationSuffix, extnetPrefix string) *gaia.ExternalNetwork {
+func Transform(extnet *gaia.ExternalNetwork) *gaia.ExternalNetwork {
 
 	// Process the external network - Create a v2 copy, add suffix to name, remove protocol and ports
 	v2extnet := extnet.DeepCopy()
-	v2extnet.Name = v2extnet.Name + migrationSuffix
+	v2extnet.Name = v2extnet.Name + utils.MigrationSuffix
 	v2extnet.ServicePorts = []string{}
 	associatedTags := []string{}
 	for _, t := range v2extnet.AssociatedTags {
-		if strings.HasPrefix(t, extnetPrefix) {
-			t = t + migrationSuffix
+		if strings.HasPrefix(t, utils.ExtnetPrefix) {
+			t = t + utils.MigrationSuffix
 		}
 		associatedTags = append(associatedTags, t)
 	}
