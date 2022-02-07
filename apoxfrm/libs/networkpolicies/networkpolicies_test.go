@@ -73,43 +73,100 @@ func TestGet(t *testing.T) {
 
 	// Network Policies
 	netpol := gaia.NewNetworkAccessPolicy()
-	netpol.Name = "one"
+	netpol.Name = "ports"
 	netpol.Namespace = "/customer/root/zone/tenant"
 	netpol.ApplyPolicyMode = gaia.NetworkAccessPolicyApplyPolicyModeIncomingTraffic
 	netpol.Object = [][]string{{"$identity=processingunit"}}
-	netpol.Subject = [][]string{{"$name=ssh", "customer:ext:net=ssh"}}
+	netpol.Subject = [][]string{
+		{"$name=ssh", "customer:ext:net=ssh"},
+		{"customer:ext:net=tenant"},
+	}
 	netpol.Ports = []string{"tcp/22", "udp/52"}
 	netpol.Action = gaia.NetworkAccessPolicyActionAllow
+
+	netpolNoPorts := gaia.NewNetworkAccessPolicy()
+	netpolNoPorts.Name = "no-ports"
+	netpolNoPorts.Namespace = "/customer/root/zone/tenant"
+	netpolNoPorts.ApplyPolicyMode = gaia.NetworkAccessPolicyApplyPolicyModeIncomingTraffic
+	netpolNoPorts.Object = [][]string{{"$identity=processingunit"}}
+	netpolNoPorts.Subject = [][]string{
+		{"$name=ssh", "customer:ext:net=ssh"},
+		{"customer:ext:net=tenant"},
+	}
+	netpolNoPorts.Action = gaia.NetworkAccessPolicyActionAllow
+
 	// External Networks
 	extnetList := gaia.ExternalNetworksList{
 		&gaia.ExternalNetwork{
 			Name:           "ssh",
-			AssociatedTags: []string{"customer:namespace=/root", "customer:ext:net=ssh"},
-			NormalizedTags: []string{"$name=ssh", "$namespace=/root", "customer:namespace=/root", "customer:ext:net=ssh"},
+			Namespace:      "/customer/root",
+			AssociatedTags: []string{"customer:namespace=/customer/root", "customer:ext:net=ssh"},
+			NormalizedTags: []string{"$name=ssh", "$namespace=/customer/root", "customer:namespace=/customer/root", "customer:ext:net=ssh"},
 			ServicePorts:   []string{"tcp/22"},
 			Propagate:      true,
 		},
 		&gaia.ExternalNetwork{
 			Name:           "traceroute",
-			AssociatedTags: []string{"customer:namespace=/root", "customer:ext:net=traceroute"},
-			NormalizedTags: []string{"$name=traceroute", "$namespace=/root", "customer:namespace=/root", "customer:ext:net=traceroute"},
+			Namespace:      "/root",
+			AssociatedTags: []string{"customer:namespace=/customer/root", "customer:ext:net=traceroute"},
+			NormalizedTags: []string{"$name=traceroute", "$namespace=/customer/root", "customer:namespace=/customer/root", "customer:ext:net=traceroute"},
 			ServicePorts:   []string{"icmp"},
 			Propagate:      true,
 		},
 		&gaia.ExternalNetwork{
 			Name:           "dhcp",
-			AssociatedTags: []string{"customer:namespace=/root", "customer:ext:net=dhcp"},
-			NormalizedTags: []string{"$name=dhcp", "$namespace=/root", "customer:namespace=/root", "customer:ext:net=dhcp"},
+			Namespace:      "/root",
+			AssociatedTags: []string{"customer:namespace=/customer/root", "customer:ext:net=dhcp"},
+			NormalizedTags: []string{"$name=dhcp", "$namespace=/customer/root", "customer:namespace=/customer/root", "customer:ext:net=dhcp"},
 			ServicePorts:   []string{"udp"},
+			Propagate:      true,
+		},
+
+		// Tenant level
+		&gaia.ExternalNetwork{
+			Name:           "tenant",
+			Namespace:      "/customer/root/zone/tenant",
+			AssociatedTags: []string{"customer:namespace=/customer/root", "customer:ext:net=tenant"},
+			NormalizedTags: []string{"$name=tenant", "$namespace=/customer/root/zone/tenant", "customer:namespace=/customer/root/zone/tenant", "customer:ext:net=tenant"},
+			ServicePorts:   []string{"tcp/443"},
 			Propagate:      true,
 		},
 	}
 	// Network Rules
 	netrule := gaia.NetworkRule{
-		Action:        gaia.NetworkRuleActionAllow,
-		LogsDisabled:  true,
-		Object:        [][]string{{"$name=ssh" + utils.MigrationSuffix, "customer:ext:net=ssh" + utils.MigrationSuffix}},
+		Action:       gaia.NetworkRuleActionAllow,
+		LogsDisabled: true,
+		Object: [][]string{
+			{"$name=ssh" + utils.MigrationSuffix, "customer:ext:net=ssh" + utils.MigrationSuffix},
+		},
 		ProtocolPorts: []string{"TCP/22", "UDP/52"},
+		ModelVersion:  1,
+	}
+	tenantnetrule := gaia.NetworkRule{
+		Action:       gaia.NetworkRuleActionAllow,
+		LogsDisabled: true,
+		Object: [][]string{
+			{"$name=tenant" + utils.MigrationSuffix, "customer:ext:net=tenant" + utils.MigrationSuffix},
+		},
+		ProtocolPorts: []string{"UDP/52"},
+		ModelVersion:  1,
+	}
+	netruleNoPorts := gaia.NetworkRule{
+		Action:       gaia.NetworkRuleActionAllow,
+		LogsDisabled: true,
+		Object: [][]string{
+			{"$name=ssh" + utils.MigrationSuffix, "customer:ext:net=ssh" + utils.MigrationSuffix},
+		},
+		ProtocolPorts: []string{"TCP/22"},
+		ModelVersion:  1,
+	}
+	tenantnetruleNoPorts := gaia.NetworkRule{
+		Action:       gaia.NetworkRuleActionAllow,
+		LogsDisabled: true,
+		Object: [][]string{
+			{"$name=tenant" + utils.MigrationSuffix, "customer:ext:net=tenant" + utils.MigrationSuffix},
+		},
+		ProtocolPorts: []string{"TCP/443"},
 		ModelVersion:  1,
 	}
 	type args struct {
@@ -124,7 +181,7 @@ func TestGet(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "basic",
+			name: "ports intersection",
 			args: args{
 				netpol:     netpol,
 				extnetList: extnetList,
@@ -132,8 +189,24 @@ func TestGet(t *testing.T) {
 			prefix: "customer:ext:net=",
 			want: []map[string]interface{}{
 				{
-					"incomingRules": []*gaia.NetworkRule{&netrule},
-					"name":          "one-v2",
+					"incomingRules": []*gaia.NetworkRule{&netrule, &tenantnetrule},
+					"name":          "ports-v2",
+					"subject":       [][]string{{"$identity=processingunit"}},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "no ports",
+			args: args{
+				netpol:     netpolNoPorts,
+				extnetList: extnetList,
+			},
+			prefix: "customer:ext:net=",
+			want: []map[string]interface{}{
+				{
+					"incomingRules": []*gaia.NetworkRule{&netruleNoPorts, &tenantnetruleNoPorts},
+					"name":          "no-ports-v2",
 					"subject":       [][]string{{"$identity=processingunit"}},
 				},
 			},
