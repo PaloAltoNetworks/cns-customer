@@ -89,6 +89,20 @@ func TestGet(t *testing.T) {
 			ServicePorts:   []string{"tcp/22"},
 			Propagate:      true,
 		},
+		&gaia.ExternalNetwork{
+			Name:           "traceroute",
+			AssociatedTags: []string{"customer:namespace=/root", "customer:ext:net=traceroute"},
+			NormalizedTags: []string{"$name=traceroute", "$namespace=/root", "customer:namespace=/root", "customer:ext:net=traceroute"},
+			ServicePorts:   []string{"icmp"},
+			Propagate:      true,
+		},
+		&gaia.ExternalNetwork{
+			Name:           "dhcp",
+			AssociatedTags: []string{"customer:namespace=/root", "customer:ext:net=dhcp"},
+			NormalizedTags: []string{"$name=dhcp", "$namespace=/root", "customer:namespace=/root", "customer:ext:net=dhcp"},
+			ServicePorts:   []string{"udp"},
+			Propagate:      true,
+		},
 	}
 	// Network Rules
 	netrule := gaia.NetworkRule{
