@@ -29,6 +29,27 @@ func match(tags, objTags []string) bool {
 	return true
 }
 
+func refHasBadNames(ref [][]string) bool {
+
+	for _, tags := range ref {
+		namePrefix := false
+		identityPrefix := false
+		for _, tag := range tags {
+			if strings.HasPrefix(tag, utils.ExtnetNamePrefix) {
+				namePrefix = true
+			}
+			if strings.HasPrefix(tag, "$identity=") {
+				identityPrefix = true
+			}
+		}
+
+		if namePrefix != identityPrefix {
+			return true
+		}
+	}
+	return false
+}
+
 func refHasExtNextworks(ref []string) bool {
 
 	for _, tag := range ref {

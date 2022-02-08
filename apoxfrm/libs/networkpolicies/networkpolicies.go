@@ -33,6 +33,7 @@ type netPolInfo struct {
 	transformations []map[string]interface{}
 
 	// Warnings
+	badNameReferences                               bool
 	candidateForUnidirectionalPolicy                bool
 	ineffectivePolicy                               bool
 	subjectExternalNetworksNoNameRefButExtNetsFound []bool
@@ -140,6 +141,10 @@ func (n *netPolInfo) resolveExternalNetworks(extnetList gaia.ExternalNetworksLis
 		}
 	}
 
+	if refHasBadNames(n.netpol.Subject) || refHasBadNames(n.netpol.Object) {
+		n.badNameReferences = true
+	}
+
 	if n.netpol.NegateObject || n.netpol.NegateSubject {
 		n.exceptions = true
 		n.negationsNotSupported = true
@@ -155,6 +160,9 @@ func (n *netPolInfo) checkAndPrintWarnings(verbose bool) bool {
 
 	if n.negationsNotSupported {
 		warning += fmt.Sprintf("      - negationsNotSupported:            %v\n", n.negationsNotSupported)
+	}
+	if verbose || n.badNameReferences {
+		warning += fmt.Sprintf("      - badNameReferences:                %v\n", n.badNameReferences)
 	}
 	if verbose || n.candidateForUnidirectionalPolicy {
 		warning += fmt.Sprintf("      - candidateForUnidirectionalPolicy: %v\n", n.candidateForUnidirectionalPolicy)
