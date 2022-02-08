@@ -71,30 +71,6 @@ func compareNetworkRules(t *testing.T, a, b []*gaia.NetworkRule) bool {
 
 func TestGet(t *testing.T) {
 
-	// Network Policies
-	netpol := gaia.NewNetworkAccessPolicy()
-	netpol.Name = "ports"
-	netpol.Namespace = "/customer/root/zone/tenant"
-	netpol.ApplyPolicyMode = gaia.NetworkAccessPolicyApplyPolicyModeIncomingTraffic
-	netpol.Object = [][]string{{"$identity=processingunit"}}
-	netpol.Subject = [][]string{
-		{"$name=ssh", "customer:ext:net=ssh"},
-		{"customer:ext:net=tenant"},
-	}
-	netpol.Ports = []string{"tcp/22", "udp/52"}
-	netpol.Action = gaia.NetworkAccessPolicyActionAllow
-
-	netpolNoPorts := gaia.NewNetworkAccessPolicy()
-	netpolNoPorts.Name = "no-ports"
-	netpolNoPorts.Namespace = "/customer/root/zone/tenant"
-	netpolNoPorts.ApplyPolicyMode = gaia.NetworkAccessPolicyApplyPolicyModeIncomingTraffic
-	netpolNoPorts.Object = [][]string{{"$identity=processingunit"}}
-	netpolNoPorts.Subject = [][]string{
-		{"$name=ssh", "customer:ext:net=ssh"},
-		{"customer:ext:net=tenant"},
-	}
-	netpolNoPorts.Action = gaia.NetworkAccessPolicyActionAllow
-
 	// External Networks
 	extnetList := gaia.ExternalNetworksList{
 		&gaia.ExternalNetwork{
@@ -132,26 +108,20 @@ func TestGet(t *testing.T) {
 			Propagate:      true,
 		},
 	}
-	// Network Rules
-	netrule := gaia.NetworkRule{
-		Action:       gaia.NetworkRuleActionAllow,
-		LogsDisabled: true,
-		Object: [][]string{
-			{"$name=ssh" + utils.MigrationSuffix, "customer:ext:net=ssh" + utils.MigrationSuffix},
-		},
-		ProtocolPorts: []string{"TCP/22", "UDP/52"},
-		ModelVersion:  1,
+
+	// Incoming Network Policy with no ports
+	incomingNetpolNoPorts := gaia.NewNetworkAccessPolicy()
+	incomingNetpolNoPorts.Name = "no-ports-incoming"
+	incomingNetpolNoPorts.Namespace = "/customer/root/zone/tenant"
+	incomingNetpolNoPorts.ApplyPolicyMode = gaia.NetworkAccessPolicyApplyPolicyModeIncomingTraffic
+	incomingNetpolNoPorts.Object = [][]string{{"$identity=processingunit"}}
+	incomingNetpolNoPorts.Subject = [][]string{
+		{"$name=ssh", "customer:ext:net=ssh"},
+		{"customer:ext:net=tenant"},
 	}
-	tenantnetrule := gaia.NetworkRule{
-		Action:       gaia.NetworkRuleActionAllow,
-		LogsDisabled: true,
-		Object: [][]string{
-			{"$name=tenant" + utils.MigrationSuffix, "customer:ext:net=tenant" + utils.MigrationSuffix},
-		},
-		ProtocolPorts: []string{"UDP/52"},
-		ModelVersion:  1,
-	}
-	netruleNoPorts := gaia.NetworkRule{
+	// Network rules to support no ports policy
+	incomingNetpolNoPorts.Action = gaia.NetworkAccessPolicyActionAllow
+	incomingNetruleNoPorts := gaia.NetworkRule{
 		Action:       gaia.NetworkRuleActionAllow,
 		LogsDisabled: true,
 		Object: [][]string{
@@ -160,7 +130,7 @@ func TestGet(t *testing.T) {
 		ProtocolPorts: []string{"TCP/22"},
 		ModelVersion:  1,
 	}
-	tenantnetruleNoPorts := gaia.NetworkRule{
+	incomingTenantNetruleNoPorts := gaia.NetworkRule{
 		Action:       gaia.NetworkRuleActionAllow,
 		LogsDisabled: true,
 		Object: [][]string{
@@ -169,6 +139,103 @@ func TestGet(t *testing.T) {
 		ProtocolPorts: []string{"TCP/443"},
 		ModelVersion:  1,
 	}
+
+	// Incoming Network Policy with ports
+	incomingNetpol := gaia.NewNetworkAccessPolicy()
+	incomingNetpol.Name = "ports-incoming"
+	incomingNetpol.Namespace = "/customer/root/zone/tenant"
+	incomingNetpol.ApplyPolicyMode = gaia.NetworkAccessPolicyApplyPolicyModeIncomingTraffic
+	incomingNetpol.Object = [][]string{{"$identity=processingunit"}}
+	incomingNetpol.Subject = [][]string{
+		{"$name=ssh", "customer:ext:net=ssh"},
+		{"customer:ext:net=tenant"},
+	}
+	incomingNetpol.Ports = []string{"tcp/22", "udp/52"}
+	incomingNetpol.Action = gaia.NetworkAccessPolicyActionAllow
+	// Network Rules with port intersection with policies
+	incomingNetrule := gaia.NetworkRule{
+		Action:       gaia.NetworkRuleActionAllow,
+		LogsDisabled: true,
+		Object: [][]string{
+			{"$name=ssh" + utils.MigrationSuffix, "customer:ext:net=ssh" + utils.MigrationSuffix},
+		},
+		ProtocolPorts: []string{"TCP/22", "UDP/52"},
+		ModelVersion:  1,
+	}
+	incomingTenantNetrule := gaia.NetworkRule{
+		Action:       gaia.NetworkRuleActionAllow,
+		LogsDisabled: true,
+		Object: [][]string{
+			{"$name=tenant" + utils.MigrationSuffix, "customer:ext:net=tenant" + utils.MigrationSuffix},
+		},
+		ProtocolPorts: []string{"UDP/52"},
+		ModelVersion:  1,
+	}
+
+	// Outgoing Network Policy with no ports
+	outgoingNetpolNoPorts := gaia.NewNetworkAccessPolicy()
+	outgoingNetpolNoPorts.Name = "no-ports-outgoing"
+	outgoingNetpolNoPorts.Namespace = "/customer/root/zone/tenant"
+	outgoingNetpolNoPorts.ApplyPolicyMode = gaia.NetworkAccessPolicyApplyPolicyModeOutgoingTraffic
+	outgoingNetpolNoPorts.Object = [][]string{
+		{"$name=ssh", "customer:ext:net=ssh"},
+		{"customer:ext:net=tenant"},
+	}
+	outgoingNetpolNoPorts.Subject = [][]string{{"$identity=processingunit"}}
+	outgoingNetpolNoPorts.Action = gaia.NetworkAccessPolicyActionAllow
+	// Network rules to support no ports policy
+	outgoingNetruleNoPorts := gaia.NetworkRule{
+		Action:       gaia.NetworkRuleActionAllow,
+		LogsDisabled: true,
+		Object: [][]string{
+			{"$name=ssh" + utils.MigrationSuffix, "customer:ext:net=ssh" + utils.MigrationSuffix},
+		},
+		ProtocolPorts: []string{"TCP/22"},
+		ModelVersion:  1,
+	}
+	outgoingTenantNetruleNoPorts := gaia.NetworkRule{
+		Action:       gaia.NetworkRuleActionAllow,
+		LogsDisabled: true,
+		Object: [][]string{
+			{"$name=tenant" + utils.MigrationSuffix, "customer:ext:net=tenant" + utils.MigrationSuffix},
+		},
+		ProtocolPorts: []string{"TCP/443"},
+		ModelVersion:  1,
+	}
+
+	// Outgoing Network Policy with ports
+	outgoingNetpol := gaia.NewNetworkAccessPolicy()
+	outgoingNetpol.Name = "ports-outgoing"
+	outgoingNetpol.Namespace = "/customer/root/zone/tenant"
+	outgoingNetpol.ApplyPolicyMode = gaia.NetworkAccessPolicyApplyPolicyModeOutgoingTraffic
+	outgoingNetpol.Object = [][]string{
+		{"$name=ssh", "customer:ext:net=ssh"},
+		{"customer:ext:net=tenant"},
+	}
+	outgoingNetpol.Subject = [][]string{{"$identity=processingunit"}}
+	outgoingNetpol.Ports = []string{"tcp/22", "udp/52"}
+	outgoingNetpol.Action = gaia.NetworkAccessPolicyActionAllow
+	// Network Rules with port intersection with policies
+	outgoingNetrule := gaia.NetworkRule{
+		Action:       gaia.NetworkRuleActionAllow,
+		LogsDisabled: true,
+		Object: [][]string{
+			{"$name=ssh" + utils.MigrationSuffix, "customer:ext:net=ssh" + utils.MigrationSuffix},
+		},
+		ProtocolPorts: []string{"TCP/22", "UDP/52"},
+		ModelVersion:  1,
+	}
+	outgoingTenantNetrule := gaia.NetworkRule{
+		Action:       gaia.NetworkRuleActionAllow,
+		LogsDisabled: true,
+		Object: [][]string{
+			{"$name=tenant" + utils.MigrationSuffix, "customer:ext:net=tenant" + utils.MigrationSuffix},
+		},
+		ProtocolPorts: []string{"UDP/52"},
+		ModelVersion:  1,
+	}
+
+	// Tests
 	type args struct {
 		netpol     *gaia.NetworkAccessPolicy
 		extnetList gaia.ExternalNetworksList
@@ -181,38 +248,71 @@ func TestGet(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "ports intersection",
+			name: "incoming no ports",
 			args: args{
-				netpol:     netpol,
+				netpol:     incomingNetpolNoPorts,
 				extnetList: extnetList,
 			},
 			prefix: "customer:ext:net=",
 			want: []map[string]interface{}{
 				{
-					"incomingRules": []*gaia.NetworkRule{&netrule, &tenantnetrule},
-					"name":          "ports-v2",
+					"incomingRules": []*gaia.NetworkRule{&incomingNetruleNoPorts, &incomingTenantNetruleNoPorts},
+					"name":          "no-ports-incoming-v2",
 					"subject":       [][]string{{"$identity=processingunit"}},
 				},
 			},
 			wantErr: false,
 		},
 		{
-			name: "no ports",
+			name: "incoming ports intersection",
 			args: args{
-				netpol:     netpolNoPorts,
+				netpol:     incomingNetpol,
 				extnetList: extnetList,
 			},
 			prefix: "customer:ext:net=",
 			want: []map[string]interface{}{
 				{
-					"incomingRules": []*gaia.NetworkRule{&netruleNoPorts, &tenantnetruleNoPorts},
-					"name":          "no-ports-v2",
+					"incomingRules": []*gaia.NetworkRule{&incomingNetrule, &incomingTenantNetrule},
+					"name":          "ports-incoming-v2",
+					"subject":       [][]string{{"$identity=processingunit"}},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "outgoing no ports",
+			args: args{
+				netpol:     outgoingNetpolNoPorts,
+				extnetList: extnetList,
+			},
+			prefix: "customer:ext:net=",
+			want: []map[string]interface{}{
+				{
+					"outgoingRules": []*gaia.NetworkRule{&outgoingNetruleNoPorts, &outgoingTenantNetruleNoPorts},
+					"name":          "no-ports-outgoing-v2",
+					"subject":       [][]string{{"$identity=processingunit"}},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "outgoing ports intersection",
+			args: args{
+				netpol:     outgoingNetpol,
+				extnetList: extnetList,
+			},
+			prefix: "customer:ext:net=",
+			want: []map[string]interface{}{
+				{
+					"outgoingRules": []*gaia.NetworkRule{&outgoingNetrule, &outgoingTenantNetrule},
+					"name":          "ports-outgoing-v2",
 					"subject":       [][]string{{"$identity=processingunit"}},
 				},
 			},
 			wantErr: false,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			utils.ExtnetPrefix = tt.prefix
@@ -233,9 +333,14 @@ func TestGet(t *testing.T) {
 					if !ok {
 						t.Errorf("Get() missing key %v in tt.want[i][mk]", mk)
 					}
-					if mk == "incomingRules" {
-						if !compareNetworkRules(t, mv.([]*gaia.NetworkRule), wv.([]*gaia.NetworkRule)) {
-							t.Errorf("Get() mv=%v, want wv=%v", mv, wv)
+					if mk == "incomingRules" || mk == "outgoingRules" {
+						mvx, mok := mv.([]*gaia.NetworkRule)
+						wvx, wok := mv.([]*gaia.NetworkRule)
+						if !(mok && wok) {
+							t.Errorf("Get() mvx=%v, want wvx=%v", mvx, wvx)
+						}
+						if !compareNetworkRules(t, mvx, wvx) {
+							t.Errorf("Get() mv=%v, want wv=%v", mvx, wvx)
 						}
 					} else {
 						if !reflect.DeepEqual(mv, wv) {
