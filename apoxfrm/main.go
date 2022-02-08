@@ -148,11 +148,12 @@ func process(dir, file string, extraFiles []string) {
 
 	importData := gaia.NewImport()
 	importData.Data.Label = exportedData.Label + utils.MigrationSuffix
-	importData.Data.APIVersion = 1
 	importData.Data.Data["externalnetworks"] = xextnets
+	importData.Data.Identities = append(importData.Data.Identities, "externalnetworks")
 	importData.Data.Data["networkrulesetpolicies"] = netrulesetpolicies
+	importData.Data.Identities = append(importData.Data.Identities, "networkrulesetpolicies")
 
-	data, err := yaml.Marshal(importData)
+	data, err := yaml.Marshal(importData.Data)
 	if err != nil {
 		panic(err)
 	}
