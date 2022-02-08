@@ -139,6 +139,13 @@ func TestGet(t *testing.T) {
 		ProtocolPorts: []string{"TCP/443"},
 		ModelVersion:  1,
 	}
+	incomingNoPortsWant := []map[string]interface{}{
+		{
+			"incomingRules": []*gaia.NetworkRule{&incomingNetruleNoPorts, &incomingTenantNetruleNoPorts},
+			"name":          "no-ports-incoming-v2",
+			"subject":       [][]string{{"$identity=processingunit"}},
+		},
+	}
 
 	// Incoming Network Policy with ports
 	incomingNetpol := gaia.NewNetworkAccessPolicy()
@@ -171,6 +178,13 @@ func TestGet(t *testing.T) {
 		ProtocolPorts: []string{"UDP/52"},
 		ModelVersion:  1,
 	}
+	incomingWant := []map[string]interface{}{
+		{
+			"incomingRules": []*gaia.NetworkRule{&incomingNetrule, &incomingTenantNetrule},
+			"name":          "ports-incoming-v2",
+			"subject":       [][]string{{"$identity=processingunit"}},
+		},
+	}
 
 	// Outgoing Network Policy with no ports
 	outgoingNetpolNoPorts := gaia.NewNetworkAccessPolicy()
@@ -201,6 +215,13 @@ func TestGet(t *testing.T) {
 		},
 		ProtocolPorts: []string{"TCP/443"},
 		ModelVersion:  1,
+	}
+	outgoingNoPortsWant := []map[string]interface{}{
+		{
+			"outgoingRules": []*gaia.NetworkRule{&outgoingNetruleNoPorts, &outgoingTenantNetruleNoPorts},
+			"name":          "no-ports-outgoing-v2",
+			"subject":       [][]string{{"$identity=processingunit"}},
+		},
 	}
 
 	// Outgoing Network Policy with ports
@@ -234,6 +255,71 @@ func TestGet(t *testing.T) {
 		ProtocolPorts: []string{"UDP/52"},
 		ModelVersion:  1,
 	}
+	outgoingWant := []map[string]interface{}{
+		{
+			"outgoingRules": []*gaia.NetworkRule{&outgoingNetrule, &outgoingTenantNetrule},
+			"name":          "ports-outgoing-v2",
+			"subject":       [][]string{{"$identity=processingunit"}},
+		},
+	}
+
+	// Bidirectional Network Policy with ports
+	bidirectionalNetpol := gaia.NewNetworkAccessPolicy()
+	bidirectionalNetpol.Name = "ports-bidirectional"
+	bidirectionalNetpol.Namespace = "/customer/root/zone/tenant"
+	bidirectionalNetpol.ApplyPolicyMode = gaia.NetworkAccessPolicyApplyPolicyModeBidirectional
+	bidirectionalNetpol.Object = [][]string{
+		{"$name=ssh", "customer:ext:net=ssh"},
+		{"customer:ext:net=tenant"},
+	}
+	bidirectionalNetpol.Subject = [][]string{{"$identity=processingunit"}}
+	bidirectionalNetpol.Ports = []string{"tcp/22", "udp/52"}
+	bidirectionalNetpol.Action = gaia.NetworkAccessPolicyActionAllow
+	// Network Rules with port intersection with policies
+	bidirectionalNetrule := gaia.NetworkRule{
+		Action:       gaia.NetworkRuleActionAllow,
+		LogsDisabled: true,
+		Object: [][]string{
+			{"$name=ssh" + utils.MigrationSuffix, "customer:ext:net=ssh" + utils.MigrationSuffix},
+		},
+		ProtocolPorts: []string{"TCP/22", "UDP/52"},
+		ModelVersion:  1,
+	}
+	bidirectionalTenantNetrule := gaia.NetworkRule{
+		Action:       gaia.NetworkRuleActionAllow,
+		LogsDisabled: true,
+		Object: [][]string{
+			{"$name=tenant" + utils.MigrationSuffix, "customer:ext:net=tenant" + utils.MigrationSuffix},
+		},
+		ProtocolPorts: []string{"UDP/52"},
+		ModelVersion:  1,
+	}
+	bidirectionalReflexiveNetrule := gaia.NetworkRule{
+		Action:       gaia.NetworkRuleActionAllow,
+		LogsDisabled: true,
+		Object: [][]string{
+			{"$identity=processingunit"},
+		},
+		ProtocolPorts: []string{"UDP/52"},
+		ModelVersion:  1,
+	}
+	bidirectionalWant := []map[string]interface{}{
+		{
+			"outgoingRules": []*gaia.NetworkRule{&bidirectionalReflexiveNetrule},
+			"incomingRules": []*gaia.NetworkRule{&bidirectionalReflexiveNetrule},
+			"name":          "ports-bidirectional-v2",
+			"subject": [][]string{
+				{"$name=ssh-v2", "customer:ext:net=ssh-v2"},
+				{"customer:ext:net=tenant-v2"},
+			},
+		},
+		{
+			"outgoingRules": []*gaia.NetworkRule{&bidirectionalNetrule, &bidirectionalTenantNetrule},
+			"incomingRules": []*gaia.NetworkRule{&bidirectionalNetrule, &bidirectionalTenantNetrule},
+			"name":          "ports-bidirectional-v2",
+			"subject":       [][]string{{"$identity=processingunit"}},
+		},
+	}
 
 	// Tests
 	type args struct {
@@ -253,14 +339,8 @@ func TestGet(t *testing.T) {
 				netpol:     incomingNetpolNoPorts,
 				extnetList: extnetList,
 			},
-			prefix: "customer:ext:net=",
-			want: []map[string]interface{}{
-				{
-					"incomingRules": []*gaia.NetworkRule{&incomingNetruleNoPorts, &incomingTenantNetruleNoPorts},
-					"name":          "no-ports-incoming-v2",
-					"subject":       [][]string{{"$identity=processingunit"}},
-				},
-			},
+			prefix:  "customer:ext:net=",
+			want:    incomingNoPortsWant,
 			wantErr: false,
 		},
 		{
@@ -269,14 +349,8 @@ func TestGet(t *testing.T) {
 				netpol:     incomingNetpol,
 				extnetList: extnetList,
 			},
-			prefix: "customer:ext:net=",
-			want: []map[string]interface{}{
-				{
-					"incomingRules": []*gaia.NetworkRule{&incomingNetrule, &incomingTenantNetrule},
-					"name":          "ports-incoming-v2",
-					"subject":       [][]string{{"$identity=processingunit"}},
-				},
-			},
+			prefix:  "customer:ext:net=",
+			want:    incomingWant,
 			wantErr: false,
 		},
 		{
@@ -285,14 +359,8 @@ func TestGet(t *testing.T) {
 				netpol:     outgoingNetpolNoPorts,
 				extnetList: extnetList,
 			},
-			prefix: "customer:ext:net=",
-			want: []map[string]interface{}{
-				{
-					"outgoingRules": []*gaia.NetworkRule{&outgoingNetruleNoPorts, &outgoingTenantNetruleNoPorts},
-					"name":          "no-ports-outgoing-v2",
-					"subject":       [][]string{{"$identity=processingunit"}},
-				},
-			},
+			prefix:  "customer:ext:net=",
+			want:    outgoingNoPortsWant,
 			wantErr: false,
 		},
 		{
@@ -301,15 +369,19 @@ func TestGet(t *testing.T) {
 				netpol:     outgoingNetpol,
 				extnetList: extnetList,
 			},
-			prefix: "customer:ext:net=",
-			want: []map[string]interface{}{
-				{
-					"outgoingRules": []*gaia.NetworkRule{&outgoingNetrule, &outgoingTenantNetrule},
-					"name":          "ports-outgoing-v2",
-					"subject":       [][]string{{"$identity=processingunit"}},
-				},
-			},
+			prefix:  "customer:ext:net=",
+			want:    outgoingWant,
 			wantErr: false,
+		},
+		{
+			name: "bidirectional no ports error (could be unidirectional)",
+			args: args{
+				netpol:     bidirectionalNetpol,
+				extnetList: extnetList,
+			},
+			prefix:  "customer:ext:net=",
+			want:    bidirectionalWant,
+			wantErr: true,
 		},
 	}
 
