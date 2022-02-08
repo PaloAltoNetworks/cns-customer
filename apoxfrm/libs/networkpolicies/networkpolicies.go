@@ -33,7 +33,6 @@ type netPolInfo struct {
 	transformations []map[string]interface{}
 
 	// Warnings
-	badNameReferences                               bool
 	candidateForUnidirectionalPolicy                bool
 	ineffectivePolicy                               bool
 	subjectExternalNetworksNoNameRefButExtNetsFound []bool
@@ -42,6 +41,7 @@ type netPolInfo struct {
 	objectExternalNetworksPortMigrationNotPossible  []bool
 
 	// Exceptions detected
+	badNameReferences     bool
 	negationsNotSupported bool
 	exceptions            bool
 }
@@ -158,11 +158,11 @@ func (n *netPolInfo) checkAndPrintWarnings(verbose bool) bool {
 
 	warning := ""
 
+	if n.badNameReferences {
+		warning += fmt.Sprintf("      - badNameReferences:                %v\n", n.badNameReferences)
+	}
 	if n.negationsNotSupported {
 		warning += fmt.Sprintf("      - negationsNotSupported:            %v\n", n.negationsNotSupported)
-	}
-	if verbose || n.badNameReferences {
-		warning += fmt.Sprintf("      - badNameReferences:                %v\n", n.badNameReferences)
 	}
 	if verbose || n.candidateForUnidirectionalPolicy {
 		warning += fmt.Sprintf("      - candidateForUnidirectionalPolicy: %v\n", n.candidateForUnidirectionalPolicy)

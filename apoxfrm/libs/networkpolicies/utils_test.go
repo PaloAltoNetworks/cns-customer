@@ -236,29 +236,29 @@ func Test_extnetsFromTags(t *testing.T) {
 	extnetSameNs := gaia.NewExternalNetwork()
 	extnetSameNs.Name = "match-same-ns"
 	extnetSameNs.Namespace = "/policy/child"
-	extnetSameNs.AssociatedTags = []string{"ext:network=match-same-ns", "tag=match"}
+	extnetSameNs.NormalizedTags = []string{"ext:network=match-same-ns", "tag=match"}
 
 	extnetSameNsNoMatch := gaia.NewExternalNetwork()
 	extnetSameNsNoMatch.Name = "match-same-ns-no-match"
 	extnetSameNsNoMatch.Namespace = "/policy/child"
-	extnetSameNsNoMatch.AssociatedTags = []string{"ext:network=match-same-ns-no-match", "tag=no-match"}
+	extnetSameNsNoMatch.NormalizedTags = []string{"ext:network=match-same-ns-no-match", "tag=no-match"}
 
 	extnetParentNs := gaia.NewExternalNetwork()
 	extnetParentNs.Name = "match-parent-ns"
 	extnetParentNs.Namespace = "/policy"
 	extnetParentNs.Propagate = true
-	extnetParentNs.AssociatedTags = []string{"ext:network=match-parent-ns", "tag=match"}
+	extnetParentNs.NormalizedTags = []string{"ext:network=match-parent-ns", "tag=match"}
 
 	extnetParentNsNoPropagate := gaia.NewExternalNetwork()
 	extnetParentNsNoPropagate.Name = "parent-ns-no-propagate"
 	extnetParentNsNoPropagate.Namespace = "/policy"
-	extnetParentNsNoPropagate.AssociatedTags = []string{"ext:network=parent-ns-no-propagate", "tag=match"}
+	extnetParentNsNoPropagate.NormalizedTags = []string{"ext:network=parent-ns-no-propagate", "tag=match"}
 
 	extnetNonParentNs := gaia.NewExternalNetwork()
 	extnetNonParentNs.Name = "non-parent-ns"
 	extnetNonParentNs.Namespace = "/pol"
 	extnetNonParentNs.Propagate = true
-	extnetNonParentNs.AssociatedTags = []string{"ext:network=non-parent-ns", "tag=match"}
+	extnetNonParentNs.NormalizedTags = []string{"ext:network=non-parent-ns", "tag=match"}
 
 	tests := []struct {
 		name           string

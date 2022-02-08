@@ -43,8 +43,10 @@ func refHasBadNames(ref [][]string) bool {
 			}
 		}
 
-		if namePrefix != identityPrefix {
-			return true
+		if namePrefix {
+			if !identityPrefix {
+				return true
+			}
 		}
 	}
 	return false
