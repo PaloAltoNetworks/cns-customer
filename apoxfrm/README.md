@@ -1,3 +1,5 @@
+On running the command. All errors MUST be resolved otherwise import files may not do whats expected.
+
 Main Command example:
 
 ```bash
