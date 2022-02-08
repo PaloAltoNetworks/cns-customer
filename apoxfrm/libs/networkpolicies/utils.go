@@ -6,6 +6,7 @@ import (
 
 	"github.com/PaloAltoNetworks/cns-customer/apoxfrm/libs/portranges"
 	"github.com/PaloAltoNetworks/cns-customer/apoxfrm/libs/portspec"
+	"github.com/PaloAltoNetworks/cns-customer/apoxfrm/libs/utils"
 	"go.aporeto.io/gaia"
 	"go.aporeto.io/gaia/protocols"
 	"go.uber.org/zap"
@@ -28,12 +29,35 @@ func match(tags, objTags []string) bool {
 	return true
 }
 
+func refHasBadNames(ref [][]string) bool {
+
+	for _, tags := range ref {
+		namePrefix := false
+		identityPrefix := false
+		for _, tag := range tags {
+			if strings.HasPrefix(tag, utils.ExtnetNamePrefix) {
+				namePrefix = true
+			}
+			if strings.HasPrefix(tag, "$identity=") {
+				identityPrefix = true
+			}
+		}
+
+		if namePrefix {
+			if !identityPrefix {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func refHasExtNextworks(ref []string) bool {
 
 	for _, tag := range ref {
-		if strings.HasPrefix(tag, extnetPrefix) {
+		if strings.HasPrefix(tag, utils.ExtnetPrefix) {
 			return true
-		} else if strings.HasPrefix(tag, extnetNamePrefix) {
+		} else if strings.HasPrefix(tag, utils.ExtnetNamePrefix) {
 			return true
 		}
 	}
@@ -53,10 +77,10 @@ func refConvertExtNetworks(ref []string) []string {
 
 	r := []string{}
 	for _, tag := range ref {
-		if strings.HasPrefix(tag, extnetPrefix) {
-			r = append(r, tag+migrationSuffix)
-		} else if strings.HasPrefix(tag, extnetNamePrefix) {
-			r = append(r, tag+migrationSuffix)
+		if strings.HasPrefix(tag, utils.ExtnetPrefix) {
+			r = append(r, tag+utils.MigrationSuffix)
+		} else if strings.HasPrefix(tag, utils.ExtnetNamePrefix) {
+			r = append(r, tag+utils.MigrationSuffix)
 		} else {
 			r = append(r, tag)
 		}
@@ -231,4 +255,27 @@ func equalSlices(a, b []string) bool {
 		}
 	}
 	return true
+}
+
+func extnetsFromTags(policyNamespace string, tags []string, eList gaia.ExternalNetworksList) (extnetList gaia.ExternalNetworksList) {
+
+	for _, e := range eList {
+
+		if policyNamespace != e.Namespace {
+			// Use external network if its defined in a hierarchy higher than policy namespace
+			if !strings.HasPrefix(policyNamespace, e.Namespace+"/") {
+				continue
+			}
+			// And the external network is propagated.
+			if !e.Propagate {
+				continue
+			}
+		}
+
+		// The external network in either in same namespace as policy or at a higher level namespace with propagate=true
+		if match(tags, e.NormalizedTags) {
+			extnetList = append(extnetList, e)
+		}
+	}
+	return
 }

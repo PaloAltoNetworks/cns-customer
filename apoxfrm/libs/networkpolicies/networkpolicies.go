@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/PaloAltoNetworks/cns-customer/apoxfrm/libs/utils"
 	"github.com/mitchellh/mapstructure"
 	"go.aporeto.io/gaia"
 )
@@ -40,6 +41,7 @@ type netPolInfo struct {
 	objectExternalNetworksPortMigrationNotPossible  []bool
 
 	// Exceptions detected
+	badNameReferences     bool
 	negationsNotSupported bool
 	exceptions            bool
 }
@@ -139,6 +141,10 @@ func (n *netPolInfo) resolveExternalNetworks(extnetList gaia.ExternalNetworksLis
 		}
 	}
 
+	if refHasBadNames(n.netpol.Subject) || refHasBadNames(n.netpol.Object) {
+		n.badNameReferences = true
+	}
+
 	if n.netpol.NegateObject || n.netpol.NegateSubject {
 		n.exceptions = true
 		n.negationsNotSupported = true
@@ -152,6 +158,9 @@ func (n *netPolInfo) checkAndPrintWarnings(verbose bool) bool {
 
 	warning := ""
 
+	if n.badNameReferences {
+		warning += fmt.Sprintf("      - badNameReferences:                %v\n", n.badNameReferences)
+	}
 	if n.negationsNotSupported {
 		warning += fmt.Sprintf("      - negationsNotSupported:            %v\n", n.negationsNotSupported)
 	}
@@ -216,7 +225,7 @@ func (n *netPolInfo) xfrm() {
 	n.outgoing.Disabled = n.netpol.Disabled
 	n.outgoing.Fallback = n.netpol.Fallback
 	n.outgoing.Metadata = n.netpol.Metadata
-	n.outgoing.Name = n.netpol.Name + migrationSuffix
+	n.outgoing.Name = n.netpol.Name + utils.MigrationSuffix
 	n.outgoing.Namespace = n.netpol.Namespace
 	n.outgoing.NormalizedTags = n.netpol.NormalizedTags
 	n.outgoing.Propagate = n.netpol.Propagate
