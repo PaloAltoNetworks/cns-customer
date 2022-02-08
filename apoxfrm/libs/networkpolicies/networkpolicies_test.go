@@ -113,6 +113,7 @@ func TestGet(t *testing.T) {
 	incomingNetpolNoPorts := gaia.NewNetworkAccessPolicy()
 	incomingNetpolNoPorts.Name = "no-ports-incoming"
 	incomingNetpolNoPorts.Namespace = "/customer/root/zone/tenant"
+	incomingNetpolNoPorts.Disabled = true
 	incomingNetpolNoPorts.ApplyPolicyMode = gaia.NetworkAccessPolicyApplyPolicyModeIncomingTraffic
 	incomingNetpolNoPorts.Object = [][]string{{"$identity=processingunit"}}
 	incomingNetpolNoPorts.Subject = [][]string{
@@ -141,6 +142,7 @@ func TestGet(t *testing.T) {
 	}
 	incomingNoPortsWant := []map[string]interface{}{
 		{
+			"disabled":      true,
 			"incomingRules": []*gaia.NetworkRule{&incomingNetruleNoPorts, &incomingTenantNetruleNoPorts},
 			"name":          "no-ports-incoming-v2",
 			"subject":       [][]string{{"$identity=processingunit"}},
