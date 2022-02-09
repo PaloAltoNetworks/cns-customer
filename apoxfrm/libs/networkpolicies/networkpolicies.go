@@ -48,7 +48,7 @@ type netPolInfo struct {
 
 func newNetPolInfo(netpol *gaia.NetworkAccessPolicy) *netPolInfo {
 
-	return &netPolInfo{
+	n := &netPolInfo{
 		netpol:                               netpol,
 		subjectExternalNetworks:              make([]gaia.ExternalNetworksList, len(netpol.Subject)),
 		subjectProtocolPorts:                 make([][]string, len(netpol.Subject)),
@@ -68,6 +68,16 @@ func newNetPolInfo(netpol *gaia.NetworkAccessPolicy) *netPolInfo {
 		objectExternalNetworksNoNameRefButExtNetsFound:  make([]bool, len(netpol.Object)),
 		objectExternalNetworksPortMigrationNotPossible:  make([]bool, len(netpol.Object)),
 	}
+
+	for i := 0; i < len(netpol.Subject); i++ {
+		n.subjectProtocolPorts[i] = []string{}
+	}
+
+	for i := 0; i < len(netpol.Object); i++ {
+		n.objectProtocolPorts[i] = []string{}
+	}
+
+	return n
 }
 
 func (n *netPolInfo) resolveExternalNetworks(extnetList gaia.ExternalNetworksList) {
