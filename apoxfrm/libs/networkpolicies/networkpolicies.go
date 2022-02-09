@@ -272,8 +272,8 @@ func (n *netPolInfo) xfrm() {
 
 	// Add reflexive rules for bidirectional policies
 	if n.netpol.ApplyPolicyMode == gaia.NetworkAccessPolicyApplyPolicyModeBidirectional {
-		n.outgoing.IncomingRules = n.incoming.IncomingRules
-		n.incoming.OutgoingRules = n.outgoing.OutgoingRules
+		n.outgoing.IncomingRules = n.outgoing.OutgoingRules
+		n.incoming.OutgoingRules = n.incoming.IncomingRules
 	}
 
 	// Create transformations
