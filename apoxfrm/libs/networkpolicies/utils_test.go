@@ -10,8 +10,8 @@ import (
 
 func Test_match(t *testing.T) {
 	type args struct {
-		tags    []string
-		objTags []string
+		tags []string
+		e    *gaia.ExternalNetwork
 	}
 	tests := []struct {
 		name string
@@ -21,47 +21,47 @@ func Test_match(t *testing.T) {
 		{
 			name: "same set",
 			args: args{
-				tags:    []string{"hello"},
-				objTags: []string{"hello"},
+				tags: []string{"hello"},
+				e:    &gaia.ExternalNetwork{AssociatedTags: []string{"hello"}},
 			},
 			want: true,
 		},
 		{
 			name: "sub set 1",
 			args: args{
-				tags:    []string{"hello"},
-				objTags: []string{"hello", "world"},
+				tags: []string{"hello"},
+				e:    &gaia.ExternalNetwork{AssociatedTags: []string{"hello", "world"}},
 			},
 			want: true,
 		},
 		{
 			name: "sub set 2",
 			args: args{
-				tags:    []string{"world"},
-				objTags: []string{"hello", "world"},
+				tags: []string{"world"},
+				e:    &gaia.ExternalNetwork{AssociatedTags: []string{"hello", "world"}},
 			},
 			want: true,
 		},
 		{
 			name: "super set",
 			args: args{
-				tags:    []string{"hello", "world"},
-				objTags: []string{"hello"},
+				tags: []string{"hello", "world"},
+				e:    &gaia.ExternalNetwork{AssociatedTags: []string{"hello"}},
 			},
 			want: false,
 		},
 		{
 			name: "mismatch set",
 			args: args{
-				tags:    []string{"hello"},
-				objTags: []string{"world"},
+				tags: []string{"hello"},
+				e:    &gaia.ExternalNetwork{AssociatedTags: []string{"world"}},
 			},
 			want: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := match(tt.args.tags, tt.args.objTags); got != tt.want {
+			if got := match(tt.args.tags, tt.args.e); got != tt.want {
 				t.Errorf("match() = %v, want %v", got, tt.want)
 			}
 		})
@@ -236,29 +236,29 @@ func Test_extnetsFromTags(t *testing.T) {
 	extnetSameNs := gaia.NewExternalNetwork()
 	extnetSameNs.Name = "match-same-ns"
 	extnetSameNs.Namespace = "/policy/child"
-	extnetSameNs.NormalizedTags = []string{"ext:network=match-same-ns", "tag=match"}
+	extnetSameNs.AssociatedTags = []string{"ext:network=match-same-ns", "tag=match"}
 
 	extnetSameNsNoMatch := gaia.NewExternalNetwork()
 	extnetSameNsNoMatch.Name = "match-same-ns-no-match"
 	extnetSameNsNoMatch.Namespace = "/policy/child"
-	extnetSameNsNoMatch.NormalizedTags = []string{"ext:network=match-same-ns-no-match", "tag=no-match"}
+	extnetSameNsNoMatch.AssociatedTags = []string{"ext:network=match-same-ns-no-match", "tag=no-match"}
 
 	extnetParentNs := gaia.NewExternalNetwork()
 	extnetParentNs.Name = "match-parent-ns"
 	extnetParentNs.Namespace = "/policy"
 	extnetParentNs.Propagate = true
-	extnetParentNs.NormalizedTags = []string{"ext:network=match-parent-ns", "tag=match"}
+	extnetParentNs.AssociatedTags = []string{"ext:network=match-parent-ns", "tag=match"}
 
 	extnetParentNsNoPropagate := gaia.NewExternalNetwork()
 	extnetParentNsNoPropagate.Name = "parent-ns-no-propagate"
 	extnetParentNsNoPropagate.Namespace = "/policy"
-	extnetParentNsNoPropagate.NormalizedTags = []string{"ext:network=parent-ns-no-propagate", "tag=match"}
+	extnetParentNsNoPropagate.AssociatedTags = []string{"ext:network=parent-ns-no-propagate", "tag=match"}
 
 	extnetNonParentNs := gaia.NewExternalNetwork()
 	extnetNonParentNs.Name = "non-parent-ns"
 	extnetNonParentNs.Namespace = "/pol"
 	extnetNonParentNs.Propagate = true
-	extnetNonParentNs.NormalizedTags = []string{"ext:network=non-parent-ns", "tag=match"}
+	extnetNonParentNs.AssociatedTags = []string{"ext:network=non-parent-ns", "tag=match"}
 
 	tests := []struct {
 		name           string
@@ -280,6 +280,23 @@ func Test_extnetsFromTags(t *testing.T) {
 			},
 			wantExtnetList: gaia.ExternalNetworksList{
 				extnetSameNs,
+				extnetParentNs,
+			},
+		},
+		{
+			name: "$name",
+			args: args{
+				policyNamespace: "/policy/child",
+				tags:            []string{"$identity=externalnetwork", "$name=match-parent-ns"},
+				eList: gaia.ExternalNetworksList{
+					extnetSameNs,
+					extnetSameNsNoMatch, // Tags dont match
+					extnetParentNs,
+					extnetParentNsNoPropagate, // Not propagated
+					extnetNonParentNs,         // Not in parent ns
+				},
+			},
+			wantExtnetList: gaia.ExternalNetworksList{
 				extnetParentNs,
 			},
 		},

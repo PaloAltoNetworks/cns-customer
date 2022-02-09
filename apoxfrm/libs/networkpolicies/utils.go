@@ -12,18 +12,30 @@ import (
 	"go.uber.org/zap"
 )
 
-func match(tags, objTags []string) bool {
+func match(tags []string, e *gaia.ExternalNetwork) bool {
 
 	for _, t := range tags {
-		found := false
-		for _, n := range objTags {
-			if n == t {
-				found = true
-				break
+
+		if t == "$identity=externalnetwork" {
+			continue
+		} else if strings.HasPrefix(t, "$namespace=") {
+			continue
+		} else if strings.HasPrefix(t, "$name=") {
+			name := strings.SplitN(t, "=", 2)
+			if name[1] != e.Name {
+				return false
 			}
-		}
-		if !found {
-			return false
+		} else {
+			found := false
+			for _, n := range e.AssociatedTags {
+				if n == t {
+					found = true
+					break
+				}
+			}
+			if !found {
+				return false
+			}
 		}
 	}
 	return true
@@ -273,7 +285,7 @@ func extnetsFromTags(policyNamespace string, tags []string, eList gaia.ExternalN
 		}
 
 		// The external network in either in same namespace as policy or at a higher level namespace with propagate=true
-		if match(tags, e.NormalizedTags) {
+		if match(tags, e) {
 			extnetList = append(extnetList, e)
 		}
 	}
