@@ -257,6 +257,10 @@ func intersect(a []string, b []string) []string {
 			set1 = append(set1, pp+"/1:65535")
 		} else if !strings.EqualFold(pp, protocols.ANY) {
 			set1 = append(set1, pp)
+		} else {
+			// If we find any, just reset the set
+			set1 = make([]string, 0)
+			break
 		}
 	}
 	set2 := make([]string, 0)
@@ -265,6 +269,10 @@ func intersect(a []string, b []string) []string {
 			set2 = append(set2, pp+"/1:65535")
 		} else if !strings.EqualFold(pp, protocols.ANY) {
 			set2 = append(set2, pp)
+		} else {
+			// If we find any, just reset the set
+			set2 = make([]string, 0)
+			break
 		}
 	}
 

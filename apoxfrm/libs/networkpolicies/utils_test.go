@@ -129,6 +129,14 @@ func Test_intersect(t *testing.T) {
 		want []string
 	}{
 		{
+			name: "any with something",
+			args: args{
+				a: []string{"any", "udp/53"},
+				b: []string{},
+			},
+			want: []string{},
+		},
+		{
 			name: "any and udp",
 			args: args{
 				a: []string{"any"},
@@ -143,6 +151,14 @@ func Test_intersect(t *testing.T) {
 				b: []string{"tcp/22"},
 			},
 			want: []string{"TCP/22"},
+		},
+		{
+			name: "any with something and udp",
+			args: args{
+				a: []string{"any", "udp/1:65535"},
+				b: []string{"udp/53"},
+			},
+			want: []string{"UDP/53"},
 		},
 		{
 			name: "any in external-network",
