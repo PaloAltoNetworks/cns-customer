@@ -35,8 +35,10 @@ type netPolInfo struct {
 	// Warnings
 	candidateForUnidirectionalPolicy                bool
 	ineffectivePolicy                               bool
+	subjectNeedsIntersection                        []bool
 	subjectExternalNetworksNoNameRefButExtNetsFound []bool
 	subjectExternalNetworksPortMigrationNotPossible []bool
+	objectNeedsIntersection                         []bool
 	objectExternalNetworksNoNameRefButExtNetsFound  []bool
 	objectExternalNetworksPortMigrationNotPossible  []bool
 
@@ -63,8 +65,10 @@ func newNetPolInfo(netpol *gaia.NetworkAccessPolicy) *netPolInfo {
 		transformations: make([]map[string]interface{}, 0),
 
 		// Warnings
+		subjectNeedsIntersection:                        make([]bool, len(netpol.Subject)),
 		subjectExternalNetworksNoNameRefButExtNetsFound: make([]bool, len(netpol.Subject)),
 		subjectExternalNetworksPortMigrationNotPossible: make([]bool, len(netpol.Subject)),
+		objectNeedsIntersection:                         make([]bool, len(netpol.Object)),
 		objectExternalNetworksNoNameRefButExtNetsFound:  make([]bool, len(netpol.Object)),
 		objectExternalNetworksPortMigrationNotPossible:  make([]bool, len(netpol.Object)),
 	}
@@ -133,6 +137,11 @@ func (n *netPolInfo) resolveExternalNetworks(extnetList gaia.ExternalNetworksLis
 				n.exceptions = true
 				n.subjectExternalNetworksPortMigrationNotPossible[i] = true
 			}
+			if len(portProtos) > 0 {
+				if len(n.netpol.Ports) > 0 && len(e.ServicePorts) > 0 {
+					n.subjectNeedsIntersection[i] = true
+				}
+			}
 		}
 	}
 	// All object external networks should have the same service protos
@@ -147,6 +156,11 @@ func (n *netPolInfo) resolveExternalNetworks(extnetList gaia.ExternalNetworksLis
 			} else if !equalSlices(n.objectProtocolPorts[i], portProtos) {
 				n.exceptions = true
 				n.objectExternalNetworksPortMigrationNotPossible[i] = true
+			}
+			if len(portProtos) > 0 {
+				if len(n.netpol.Ports) > 0 && len(e.ServicePorts) > 0 {
+					n.objectNeedsIntersection[i] = true
+				}
 			}
 		}
 	}
@@ -183,6 +197,9 @@ func (n *netPolInfo) checkAndPrintWarnings(verbose bool) bool {
 	if len(n.subjectExternalNetworksNoNameRefButExtNetsFound) > 0 {
 		buf := ""
 		for i := 0; i < len(n.subjectExternalNetworksNoNameRefButExtNetsFound); i++ {
+			if verbose || n.subjectNeedsIntersection[i] {
+				buf += fmt.Sprintf("          - [%d] subjectNeedsIntersection:                        %v\n", i, n.subjectNeedsIntersection[i])
+			}
 			if verbose || n.subjectExternalNetworksPortMigrationNotPossible[i] {
 				buf += fmt.Sprintf("          - [%d] subjectExternalNetworksPortMigrationNotPossible: %v\n", i, n.subjectExternalNetworksPortMigrationNotPossible[i])
 			}
@@ -198,11 +215,14 @@ func (n *netPolInfo) checkAndPrintWarnings(verbose bool) bool {
 	if len(n.objectExternalNetworksNoNameRefButExtNetsFound) > 0 {
 		buf := ""
 		for i := 0; i < len(n.objectExternalNetworksNoNameRefButExtNetsFound); i++ {
+			if verbose || n.objectNeedsIntersection[i] {
+				buf += fmt.Sprintf("          - [%d] objectNeedsIntersection:                         %v\n", i, n.objectNeedsIntersection[i])
+			}
 			if verbose || n.objectExternalNetworksPortMigrationNotPossible[i] {
-				buf += fmt.Sprintf("          - [%d] objectExternalNetworksPortMigrationNotPossible: %v\n", i, n.objectExternalNetworksPortMigrationNotPossible[i])
+				buf += fmt.Sprintf("          - [%d] objectExternalNetworksPortMigrationNotPossible:  %v\n", i, n.objectExternalNetworksPortMigrationNotPossible[i])
 			}
 			if verbose || n.objectExternalNetworksNoNameRefButExtNetsFound[i] {
-				buf += fmt.Sprintf("          - [%d] objectExternalNetworksNoNameRefButExtNetsFound: %v\n", i, n.objectExternalNetworksNoNameRefButExtNetsFound[i])
+				buf += fmt.Sprintf("          - [%d] objectExternalNetworksNoNameRefButExtNetsFound:  %v\n", i, n.objectExternalNetworksNoNameRefButExtNetsFound[i])
 			}
 		}
 		if buf != "" {
@@ -250,7 +270,7 @@ func (n *netPolInfo) xfrm() {
 	}
 	n.outgoingRule.LogsDisabled = !n.netpol.LogsEnabled
 	n.outgoingRule.ObservationEnabled = n.netpol.ObservationEnabled
-	n.outgoingRule.ProtocolPorts = n.netpol.Ports // TODO
+	n.outgoingRule.ProtocolPorts = n.netpol.Ports
 
 	// Make copies for incoming ruleset and rule
 	n.incoming = n.outgoing.DeepCopy()

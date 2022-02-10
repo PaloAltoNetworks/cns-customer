@@ -175,10 +175,10 @@ func usage() {
 func main() {
 
 	var extraFiles arrayFlags
-	directory := flag.String("config-dir", "tests/pu2pu-parent-ns", "configuation directory for yaml files")
-	file := flag.String("config-file", "policy-export.yaml", "yaml configuation file")
+	directory := flag.String("config-dir", "configs", "configuation directory for yaml files")
+	file := flag.String("config-file", "root.yaml", "yaml configuation file")
 	flag.Var(&extraFiles, "extra-files", "additional files needed to resolve extra external networks.")
-	prefix := flag.String("extnet-prefix", "externalnetwork:name=", "prefix used in the tag to reference external networks")
+	prefix := flag.String("extnet-prefix", "", "prefix used in the tag to reference external networks")
 	flag.Parse()
 
 	if *prefix == "" {
