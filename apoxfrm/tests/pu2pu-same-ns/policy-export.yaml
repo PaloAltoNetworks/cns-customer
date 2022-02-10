@@ -1,0 +1,19 @@
+APIVersion: 1
+data:
+  networkaccesspolicies:
+  - applyPolicyMode: IncomingTraffic
+    description: Unidirectional incomingPolicy, subject, object in same namespace
+    logsEnabled: true
+    name: 'test: pu2pu-pu-ns unidirectional incoming traffic in same ns'
+    object:
+    - - $namespace=/saurabh/parent/private
+      - '@app:docker:name=protected-nginx'
+    propagate: true
+    subject:
+    - - $namespace=/saurabh/parent/private
+      - '@app:docker:name=private-nginx'
+identities:
+- networkaccesspolicy
+- externalnetwork
+label: policytest2
+

@@ -41,9 +41,9 @@ type netPolInfo struct {
 	objectExternalNetworksPortMigrationNotPossible  []bool
 
 	// Exceptions detected
-	badNameReferences     bool
-	negationsNotSupported bool
-	exceptions            bool
+	badNameReferencesWithNoIdentitySpecified bool
+	negationsNotSupported                    bool
+	exceptions                               bool
 }
 
 func newNetPolInfo(netpol *gaia.NetworkAccessPolicy) *netPolInfo {
@@ -152,7 +152,7 @@ func (n *netPolInfo) resolveExternalNetworks(extnetList gaia.ExternalNetworksLis
 	}
 
 	if refHasBadNames(n.netpol.Subject) || refHasBadNames(n.netpol.Object) {
-		n.badNameReferences = true
+		n.badNameReferencesWithNoIdentitySpecified = true
 	}
 
 	if n.netpol.NegateObject || n.netpol.NegateSubject {
@@ -168,17 +168,17 @@ func (n *netPolInfo) checkAndPrintWarnings(verbose bool) bool {
 
 	warning := ""
 
-	if n.badNameReferences {
-		warning += fmt.Sprintf("      - badNameReferences:                %v\n", n.badNameReferences)
+	if n.badNameReferencesWithNoIdentitySpecified {
+		warning += fmt.Sprintf("      - badNameReferencesWithNoIdentitySpecified: %v\n", n.badNameReferencesWithNoIdentitySpecified)
 	}
 	if n.negationsNotSupported {
-		warning += fmt.Sprintf("      - negationsNotSupported:            %v\n", n.negationsNotSupported)
+		warning += fmt.Sprintf("      - negationsNotSupported:                    %v\n", n.negationsNotSupported)
 	}
 	if verbose || n.candidateForUnidirectionalPolicy {
-		warning += fmt.Sprintf("      - candidateForUnidirectionalPolicy: %v\n", n.candidateForUnidirectionalPolicy)
+		warning += fmt.Sprintf("      - candidateForUnidirectionalPolicy:         %v\n", n.candidateForUnidirectionalPolicy)
 	}
 	if verbose || n.ineffectivePolicy {
-		warning += fmt.Sprintf("      - ineffectivePolicy:                %v\n", n.ineffectivePolicy)
+		warning += fmt.Sprintf("      - ineffectivePolicy:                        %v\n", n.ineffectivePolicy)
 	}
 	if len(n.subjectExternalNetworksNoNameRefButExtNetsFound) > 0 {
 		buf := ""

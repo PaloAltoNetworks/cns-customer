@@ -1,6 +1,7 @@
 package networkpolicies
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -129,6 +130,118 @@ func Test_intersect(t *testing.T) {
 		want []string
 	}{
 		{
+			name: "any and udp",
+			args: args{
+				a: []string{"any"},
+				b: []string{"udp/53"},
+			},
+			want: []string{"any"},
+		},
+		{
+			name: "any and tcp",
+			args: args{
+				a: []string{"any"},
+				b: []string{"tcp/22"},
+			},
+			want: []string{"any"},
+		},
+		{
+			name: "any in external-network",
+			args: args{
+				a: []string{"tcp/22"},
+				b: []string{"any"},
+			},
+			want: []string{"TCP/22", "any"},
+		},
+		{
+			name: "different 1",
+			args: args{
+				a: []string{"tcp/22"},
+				b: []string{"udp/53"},
+			},
+			want: []string{"TCP/22"},
+		},
+		{
+			name: "different 2",
+			args: args{
+				a: []string{"udp/53"},
+				b: []string{"tcp/22"},
+			},
+			want: []string{"UDP/53"},
+		},
+		{
+			name: "tcp 1",
+			args: args{
+				a: []string{"tcp/11"},
+				b: []string{"tcp"},
+			},
+			want: []string{"TCP/11"},
+		},
+		{
+			name: "tcp 2",
+			args: args{
+				a: []string{"tcp"},
+				b: []string{"tcp/11"},
+			},
+			want: []string{"TCP/11"},
+		},
+		{
+			name: "tcp no first arg",
+			args: args{
+				a: []string{},
+				b: []string{"tcp/9126"},
+			},
+			want: []string{"TCP/9126"},
+		},
+		{
+			name: "tcp no second arg",
+			args: args{
+				a: []string{"tcp/9126"},
+				b: []string{},
+			},
+			want: []string{"TCP/9126"},
+		},
+		{
+			name: "tcp intersection 1",
+			args: args{
+				a: []string{"tcp/9126", "tcp/10000"},
+				b: []string{"tcp/1:65535"},
+			},
+			want: []string{"TCP/9126", "TCP/10000"},
+		},
+		{
+			name: "tcp intersection 2",
+			args: args{
+				a: []string{"tcp/9126"},
+				b: []string{"tcp/1:65535", "tcp/9126"},
+			},
+			want: []string{"TCP/9126"},
+		},
+		{
+			name: "tcp intersection 3",
+			args: args{
+				a: []string{"tcp/9126:9130"},
+				b: []string{"tcp/1:65535", "tcp/9126"},
+			},
+			want: []string{"TCP/9126:9130"},
+		},
+		{
+			name: "tcp intersection 4",
+			args: args{
+				a: []string{"tcp/9126:9130", "tcp/9300:9500"},
+				b: []string{"tcp/1:65535", "tcp/9126"},
+			},
+			want: []string{"TCP/9126:9130", "TCP/9300:9500"},
+		},
+		{
+			name: "icmp 0",
+			args: args{
+				a: []string{"icmp/11"},
+				b: []string{"icmp"},
+			},
+			want: []string{"icmp/11"},
+		},
+		{
 			name: "icmp 1",
 			args: args{
 				a: []string{"icmp/11/0"},
@@ -145,52 +258,28 @@ func Test_intersect(t *testing.T) {
 			want: []string{"icmp/11/0"},
 		},
 		{
-			name: "no first arg",
+			name: "icmp 3",
 			args: args{
-				a: []string{},
-				b: []string{"tcp/9126"},
+				a: []string{"icmp/12/1"},
+				b: []string{"icmp/11/1"},
 			},
-			want: []string{"TCP/9126"},
+			want: []string{"icmp/12/1", "icmp/11/1"},
 		},
 		{
-			name: "no second arg",
+			name: "icmp 4",
 			args: args{
-				a: []string{"tcp/9126"},
+				a: []string{"icmp/12/1", "icmp/11/1"},
 				b: []string{},
 			},
-			want: []string{"TCP/9126"},
+			want: []string{"icmp/12/1", "icmp/11/1"},
 		},
 		{
-			name: "intersection 1",
+			name: "icmp 5",
 			args: args{
-				a: []string{"tcp/9126", "tcp/10000"},
-				b: []string{"tcp/1:65535"},
+				a: []string{"icmp/*/*"}, // This is actually bad syntax and hence ignored.
+				b: []string{"icmp/11/1"},
 			},
-			want: []string{"TCP/9126", "TCP/10000"},
-		},
-		{
-			name: "intersection 2",
-			args: args{
-				a: []string{"tcp/9126"},
-				b: []string{"tcp/1:65535", "tcp/9126"},
-			},
-			want: []string{"TCP/9126"},
-		},
-		{
-			name: "intersection 3",
-			args: args{
-				a: []string{"tcp/9126:9130"},
-				b: []string{"tcp/1:65535", "tcp/9126"},
-			},
-			want: []string{"TCP/9126:9130"},
-		},
-		{
-			name: "intersection 4",
-			args: args{
-				a: []string{"tcp/9126:9130", "tcp/9300:9500"},
-				b: []string{"tcp/1:65535", "tcp/9126"},
-			},
-			want: []string{"TCP/9126:9130", "TCP/9300:9500"},
+			want: []string{"icmp/11/1"},
 		},
 		{
 			name: "multiprotocol 1",
@@ -219,6 +308,9 @@ func Test_intersect(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.name == "icmp 2" {
+				fmt.Printf("tcp2")
+			}
 			if got := intersect(tt.args.a, tt.args.b); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("intersect() = %v, want %v", got, tt.want)
 			}

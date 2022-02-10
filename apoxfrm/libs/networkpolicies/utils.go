@@ -175,7 +175,7 @@ func extractProtocolsPorts(protocol string, servicePorts []string, restrictedPor
 
 func extractNonTCPAndUDPProtocols(a []string, b []string) []string {
 
-	protoMap := make(map[string]string)
+	protoMap := make(map[string]map[string]interface{})
 
 	for _, a1 := range a {
 		rprotocol, rports, err := parseServicePort(a1)
@@ -188,7 +188,21 @@ func extractNonTCPAndUDPProtocols(a []string, b []string) []string {
 			continue
 		}
 
-		protoMap[rprotocol] = rports
+		_, ok := protoMap[rprotocol]
+		if !ok {
+			protoMap[rprotocol] = make(map[string]interface{})
+		}
+		if !strings.Contains(rports, "/") {
+			if len(protoMap[rprotocol]) > 0 {
+				continue
+			}
+		} else {
+			code := strings.Split(rports, "/")[0]
+			delete(protoMap[rprotocol], code)
+		}
+		if rports != "" {
+			protoMap[rprotocol][rports] = nil
+		}
 	}
 
 	for _, b1 := range b {
@@ -199,19 +213,33 @@ func extractNonTCPAndUDPProtocols(a []string, b []string) []string {
 			continue
 		}
 
-		if strings.EqualFold(sprotocol, protocols.L4ProtocolTCP) && strings.EqualFold(sprotocol, protocols.L4ProtocolUDP) {
+		if strings.EqualFold(sprotocol, protocols.L4ProtocolTCP) || strings.EqualFold(sprotocol, protocols.L4ProtocolUDP) {
 			continue
 		}
 
-		if v, ok := protoMap[sprotocol]; ok && len(v) < len(sports) {
-			protoMap[sprotocol] = sports
+		_, ok := protoMap[sprotocol]
+		if !ok {
+			protoMap[sprotocol] = make(map[string]interface{})
+		}
+		if !strings.Contains(sports, "/") {
+			if len(protoMap[sprotocol]) > 0 {
+				continue
+			}
+		} else {
+			code := strings.Split(sports, "/")[0]
+			delete(protoMap[sprotocol], code)
+		}
+		if sports != "" {
+			protoMap[sprotocol][sports] = nil
 		}
 	}
 
 	protos := []string{}
 	for k, v := range protoMap {
 		if len(v) > 0 {
-			protos = append(protos, fmt.Sprintf("%s/%s", k, v))
+			for k1 := range v {
+				protos = append(protos, fmt.Sprintf("%s/%s", k, k1))
+			}
 		} else {
 			protos = append(protos, k)
 		}
@@ -229,6 +257,18 @@ func intersect(a []string, b []string) []string {
 	if len(a) == 0 {
 		set1 = b
 		set2 = a
+	}
+
+	// Condition tcp and udp protocols
+	for i, pp := range set1 {
+		if strings.EqualFold(pp, protocols.L4ProtocolTCP) || strings.EqualFold(pp, protocols.L4ProtocolUDP) {
+			set1[i] = pp + "/1:65535"
+		}
+	}
+	for i, pp := range set2 {
+		if strings.EqualFold(pp, protocols.L4ProtocolTCP) || strings.EqualFold(pp, protocols.L4ProtocolUDP) {
+			set2[i] = pp + "/1:65535"
+		}
 	}
 
 	i := []string{}
