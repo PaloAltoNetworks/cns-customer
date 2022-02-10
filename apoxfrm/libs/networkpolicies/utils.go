@@ -250,41 +250,48 @@ func extractNonTCPAndUDPProtocols(a []string, b []string) []string {
 
 func intersect(a []string, b []string) []string {
 
-	set1 := a
-	set2 := b
+	// Condition tcp and udp protocols and remove any
+	set1 := make([]string, 0)
+	for _, pp := range a {
+		if strings.EqualFold(pp, protocols.L4ProtocolTCP) || strings.EqualFold(pp, protocols.L4ProtocolUDP) {
+			set1 = append(set1, pp+"/1:65535")
+		} else if !strings.EqualFold(pp, protocols.ANY) {
+			set1 = append(set1, pp)
+		}
+	}
+	set2 := make([]string, 0)
+	for _, pp := range b {
+		if strings.EqualFold(pp, protocols.L4ProtocolTCP) || strings.EqualFold(pp, protocols.L4ProtocolUDP) {
+			set2 = append(set2, pp+"/1:65535")
+		} else if !strings.EqualFold(pp, protocols.ANY) {
+			set2 = append(set2, pp)
+		}
+	}
+
+	// Setup sets to process
+	cset1 := set1
+	cset2 := set2
 
 	// Not really intersection now is it?
-	if len(a) == 0 {
-		set1 = b
-		set2 = a
-	}
-
-	// Condition tcp and udp protocols
-	for i, pp := range set1 {
-		if strings.EqualFold(pp, protocols.L4ProtocolTCP) || strings.EqualFold(pp, protocols.L4ProtocolUDP) {
-			set1[i] = pp + "/1:65535"
-		}
-	}
-	for i, pp := range set2 {
-		if strings.EqualFold(pp, protocols.L4ProtocolTCP) || strings.EqualFold(pp, protocols.L4ProtocolUDP) {
-			set2[i] = pp + "/1:65535"
-		}
+	if len(set1) == 0 {
+		cset1 = set2
+		cset2 = set1
 	}
 
 	i := []string{}
-	y := extractProtocolsPorts(protocols.L4ProtocolTCP, set1, set2)
+	y := extractProtocolsPorts(protocols.L4ProtocolTCP, cset1, cset2)
 	for _, y1 := range y {
 
 		i = append(i, fmt.Sprintf("%s/%s", protocols.L4ProtocolTCP, y1))
 	}
 
-	y = extractProtocolsPorts(protocols.L4ProtocolUDP, set1, set2)
+	y = extractProtocolsPorts(protocols.L4ProtocolUDP, cset1, cset2)
 	for _, y1 := range y {
 
 		i = append(i, fmt.Sprintf("%s/%s", protocols.L4ProtocolUDP, y1))
 	}
 
-	y = extractNonTCPAndUDPProtocols(set1, set2)
+	y = extractNonTCPAndUDPProtocols(cset1, cset2)
 	i = append(i, y...)
 	return i
 }

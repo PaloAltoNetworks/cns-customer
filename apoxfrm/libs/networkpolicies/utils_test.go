@@ -1,7 +1,6 @@
 package networkpolicies
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 
@@ -135,7 +134,7 @@ func Test_intersect(t *testing.T) {
 				a: []string{"any"},
 				b: []string{"udp/53"},
 			},
-			want: []string{"any"},
+			want: []string{"UDP/53"},
 		},
 		{
 			name: "any and tcp",
@@ -143,7 +142,7 @@ func Test_intersect(t *testing.T) {
 				a: []string{"any"},
 				b: []string{"tcp/22"},
 			},
-			want: []string{"any"},
+			want: []string{"TCP/22"},
 		},
 		{
 			name: "any in external-network",
@@ -151,7 +150,7 @@ func Test_intersect(t *testing.T) {
 				a: []string{"tcp/22"},
 				b: []string{"any"},
 			},
-			want: []string{"TCP/22", "any"},
+			want: []string{"TCP/22"},
 		},
 		{
 			name: "different 1",
@@ -308,9 +307,6 @@ func Test_intersect(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.name == "icmp 2" {
-				fmt.Printf("tcp2")
-			}
 			if got := intersect(tt.args.a, tt.args.b); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("intersect() = %v, want %v", got, tt.want)
 			}
