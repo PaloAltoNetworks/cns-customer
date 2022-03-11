@@ -138,9 +138,6 @@ func (n *netPolInfo) resolveExternalNetworks(extnetList gaia.ExternalNetworksLis
 				n.subjectExternalNetworksPortMigrationNotPossible[i] = true
 			}
 			if len(portProtos) > 0 {
-				if n.netpol.Name == "Default_ICMP" && e.Name == "Default_ICMP" {
-					fmt.Printf("hello\n")
-				}
 				if len(n.netpol.Ports) > 0 && len(e.ServicePorts) > 0 {
 					if !equalSlices(n.netpol.Ports, e.ServicePorts) {
 						n.subjectNeedsIntersection[i] = true
