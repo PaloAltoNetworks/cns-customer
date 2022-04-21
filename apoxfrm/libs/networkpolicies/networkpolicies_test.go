@@ -146,6 +146,35 @@ func TestGet(t *testing.T) {
 		},
 	}
 
+	// Incoming Network Policy with ports and no external network reference
+	incomingNetpolNoExtNet := gaia.NewNetworkAccessPolicy()
+	incomingNetpolNoExtNet.Name = "ports-incoming"
+	incomingNetpolNoExtNet.Namespace = "/customer/root/zone/tenant"
+	incomingNetpolNoExtNet.ApplyPolicyMode = gaia.NetworkAccessPolicyApplyPolicyModeIncomingTraffic
+	incomingNetpolNoExtNet.Object = [][]string{{"$identity=processingunit"}}
+	incomingNetpolNoExtNet.Subject = [][]string{
+		{"$identity=processingunit"},
+	}
+	incomingNetpolNoExtNet.Ports = []string{"tcp/22", "udp/52"}
+	incomingNetpolNoExtNet.Action = gaia.NetworkAccessPolicyActionAllow
+	// Network Rules with port intersection with policies
+	incomingNetruleNoExtNet := gaia.NetworkRule{
+		Action:       gaia.NetworkRuleActionAllow,
+		LogsDisabled: true,
+		Object: [][]string{
+			{"$identity=processingunit"},
+		},
+		ProtocolPorts: []string{"TCP/22", "UDP/52"},
+		ModelVersion:  1,
+	}
+	incomingWantNoExtNet := []map[string]interface{}{
+		{
+			"incomingRules": []*gaia.NetworkRule{&incomingNetruleNoExtNet},
+			"name":          "ports-incoming-v2",
+			"subject":       [][]string{{"$identity=processingunit"}},
+		},
+	}
+
 	// Incoming Network Policy with ports
 	incomingNetpol := gaia.NewNetworkAccessPolicy()
 	incomingNetpol.Name = "ports-incoming"
@@ -219,6 +248,33 @@ func TestGet(t *testing.T) {
 		{
 			"outgoingRules": []*gaia.NetworkRule{&outgoingNetruleNoPorts, &outgoingTenantNetruleNoPorts},
 			"name":          "no-ports-outgoing-v2",
+			"subject":       [][]string{{"$identity=processingunit"}},
+		},
+	}
+
+	// Outgoing Network Policy with ports and no external network reference
+	outgoingNetpolNoExtNet := gaia.NewNetworkAccessPolicy()
+	outgoingNetpolNoExtNet.Name = "ports-outgoing"
+	outgoingNetpolNoExtNet.Namespace = "/customer/root/zone/tenant"
+	outgoingNetpolNoExtNet.ApplyPolicyMode = gaia.NetworkAccessPolicyApplyPolicyModeOutgoingTraffic
+	outgoingNetpolNoExtNet.Object = [][]string{{"$identity=processingunit"}}
+	outgoingNetpolNoExtNet.Subject = [][]string{{"$identity=processingunit"}}
+	outgoingNetpolNoExtNet.Ports = []string{"tcp/22", "udp/52"}
+	outgoingNetpolNoExtNet.Action = gaia.NetworkAccessPolicyActionAllow
+	// Network Rules with port intersection with policies
+	outgoingNetruleNoExtNet := gaia.NetworkRule{
+		Action:       gaia.NetworkRuleActionAllow,
+		LogsDisabled: true,
+		Object: [][]string{
+			{"$identity=processingunit"},
+		},
+		ProtocolPorts: []string{"TCP/22", "UDP/52"},
+		ModelVersion:  1,
+	}
+	outgoingWantNoExtNet := []map[string]interface{}{
+		{
+			"outgoingRules": []*gaia.NetworkRule{&outgoingNetruleNoExtNet},
+			"name":          "ports-outgoing-v2",
 			"subject":       [][]string{{"$identity=processingunit"}},
 		},
 	}
@@ -343,6 +399,15 @@ func TestGet(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "incoming ports no external networks",
+			args: args{
+				netpol: incomingNetpolNoExtNet,
+			},
+			prefix:  "customer:ext:net=",
+			want:    incomingWantNoExtNet,
+			wantErr: false,
+		},
+		{
 			name: "incoming ports intersection",
 			args: args{
 				netpol:     incomingNetpol,
@@ -350,7 +415,7 @@ func TestGet(t *testing.T) {
 			},
 			prefix:  "customer:ext:net=",
 			want:    incomingWant,
-			wantErr: false,
+			wantErr: true,
 		},
 		{
 			name: "outgoing no ports",
@@ -363,6 +428,15 @@ func TestGet(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "outgoing ports no external networks",
+			args: args{
+				netpol: outgoingNetpolNoExtNet,
+			},
+			prefix:  "customer:ext:net=",
+			want:    outgoingWantNoExtNet,
+			wantErr: false,
+		},
+		{
 			name: "outgoing ports intersection",
 			args: args{
 				netpol:     outgoingNetpol,
@@ -370,7 +444,7 @@ func TestGet(t *testing.T) {
 			},
 			prefix:  "customer:ext:net=",
 			want:    outgoingWant,
-			wantErr: false,
+			wantErr: true,
 		},
 		{
 			name: "bidirectional no ports error (could be unidirectional)",
