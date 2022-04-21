@@ -1,17 +1,21 @@
 APIVersion: 1
 data:
   networkaccesspolicies:
-  - applyPolicyMode: IncomingTraffic
-    description: unidirectional incoming traffic from private to protected
-    logsEnabled: true
-    name: 'test: pu2pu-parent-ns accept from private to protected'
-    object:
-    - - $namespace=/saurabh/parent/protected
-    propagate: true
-    subject:
-    - - $namespace=/saurabh/parent/private
+    - applyPolicyMode: IncomingTraffic
+      description: unidirectional incoming traffic from private to protected
+      logsEnabled: true
+      name: "test: pu2pu-parent-ns accept from private to protected"
+      object:
+        - - $namespace=/saurabh/parent/protected
+      propagate: true
+      subject:
+        - - $namespace=/saurabh/parent/private
+      ports:
+        - icmp6
+        - udp/1:65535
+        - tcp/1:65535
+        - icmp
 identities:
-- networkaccesspolicy
-- externalnetwork
+  - networkaccesspolicy
+  - externalnetwork
 label: policytest1
-

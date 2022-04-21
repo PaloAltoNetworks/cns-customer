@@ -291,7 +291,11 @@ func (n *netPolInfo) xfrm() {
 	for index, s := range subjects {
 		i := n.incomingRule.DeepCopy()
 		i.Object = [][]string{s}
-		i.ProtocolPorts = n.subjectProtocolPorts[index]
+		if len(n.subjectProtocolPorts[index]) == 0 {
+			i.ProtocolPorts = n.netpol.Ports
+		} else {
+			i.ProtocolPorts = n.subjectProtocolPorts[index]
+		}
 		n.incoming.IncomingRules = append(n.incoming.IncomingRules, i)
 	}
 
@@ -300,7 +304,11 @@ func (n *netPolInfo) xfrm() {
 	for index, s := range objects {
 		o := n.outgoingRule.DeepCopy()
 		o.Object = [][]string{s}
-		o.ProtocolPorts = n.objectProtocolPorts[index]
+		if len(n.objectProtocolPorts[index]) == 0 {
+			o.ProtocolPorts = n.netpol.Ports
+		} else {
+			o.ProtocolPorts = n.objectProtocolPorts[index]
+		}
 		n.outgoing.OutgoingRules = append(n.outgoing.OutgoingRules, o)
 	}
 
