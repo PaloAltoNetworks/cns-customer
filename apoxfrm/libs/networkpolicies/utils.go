@@ -2,6 +2,7 @@ package networkpolicies
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/PaloAltoNetworks/cns-customer/apoxfrm/libs/portranges"
@@ -175,7 +176,10 @@ func extractProtocolsPorts(protocol string, servicePorts []string, restrictedPor
 
 func extractNonTCPAndUDPProtocols(a []string, b []string) []string {
 
-	protoMap := make(map[string]map[string]interface{})
+	sort.Strings(a)
+	sort.Strings(b)
+
+	protoMap := make(map[string]map[string][]string)
 
 	for _, a1 := range a {
 		rprotocol, rports, err := parseServicePort(a1)
@@ -188,21 +192,40 @@ func extractNonTCPAndUDPProtocols(a []string, b []string) []string {
 			continue
 		}
 
-		_, ok := protoMap[rprotocol]
+		codeMap, ok := protoMap[rprotocol]
 		if !ok {
-			protoMap[rprotocol] = make(map[string]interface{})
+			codeMap = make(map[string][]string)
 		}
+
+		if rports == "" {
+			codeMap = nil
+		}
+
+		if codeMap == nil {
+			protoMap[rprotocol] = codeMap
+			continue
+		}
+
 		if !strings.Contains(rports, "/") {
-			if len(protoMap[rprotocol]) > 0 {
-				continue
-			}
-		} else {
-			code := strings.Split(rports, "/")[0]
-			delete(protoMap[rprotocol], code)
+			codeMap[rports] = nil
+			protoMap[rprotocol] = codeMap
+			continue
 		}
-		if rports != "" {
-			protoMap[rprotocol][rports] = nil
+
+		parts := strings.Split(rports, "/")
+		code := parts[0]
+		codeTypeList, ok := codeMap[code]
+		if !ok {
+			codeTypeList = []string{}
 		}
+
+		if codeTypeList == nil {
+			protoMap[rprotocol] = codeMap
+			continue
+		}
+
+		codeMap[code] = append(codeTypeList, parts[1])
+		protoMap[rprotocol] = codeMap
 	}
 
 	for _, b1 := range b {
@@ -217,31 +240,59 @@ func extractNonTCPAndUDPProtocols(a []string, b []string) []string {
 			continue
 		}
 
-		_, ok := protoMap[sprotocol]
+		codeMap, ok := protoMap[sprotocol]
 		if !ok {
-			protoMap[sprotocol] = make(map[string]interface{})
+			codeMap = make(map[string][]string)
 		}
+
+		if sports == "" {
+			codeMap = nil
+		}
+
+		if codeMap == nil {
+			protoMap[sprotocol] = codeMap
+			continue
+		}
+
 		if !strings.Contains(sports, "/") {
-			if len(protoMap[sprotocol]) > 0 {
-				continue
-			}
-		} else {
-			code := strings.Split(sports, "/")[0]
-			delete(protoMap[sprotocol], code)
+			codeMap[sports] = nil
+			protoMap[sprotocol] = codeMap
+			continue
 		}
-		if sports != "" {
-			protoMap[sprotocol][sports] = nil
+
+		parts := strings.Split(sports, "/")
+		code := parts[0]
+		codeTypeList, ok := codeMap[code]
+		if !ok {
+			codeTypeList = []string{}
 		}
+
+		if codeTypeList == nil {
+			protoMap[sprotocol] = codeMap
+			continue
+		}
+
+		codeMap[code] = append(codeTypeList, parts[1])
+		protoMap[sprotocol] = codeMap
 	}
 
 	protos := []string{}
 	for k, v := range protoMap {
-		if len(v) > 0 {
-			for k1 := range v {
-				protos = append(protos, fmt.Sprintf("%s/%s", k, k1))
-			}
-		} else {
+		if v == nil {
 			protos = append(protos, k)
+			continue
+		}
+
+		for k1, v1 := range v {
+			if v1 == nil {
+				protos = append(protos, fmt.Sprintf("%s/%s", k, k1))
+				continue
+			}
+
+			for _, v2 := range v1 {
+				protos = append(protos, fmt.Sprintf("%s/%s/%s", k, k1, v2))
+				continue
+			}
 		}
 	}
 

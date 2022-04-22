@@ -413,3 +413,119 @@ func Test_extnetsFromTags(t *testing.T) {
 		})
 	}
 }
+
+func Test_extractNonTCPAndUDPProtocols(t *testing.T) {
+	type args struct {
+		a []string
+		b []string
+	}
+	tests := []struct {
+		name string
+		args args
+		want []string
+	}{
+		{
+			name: "basic-a",
+			args: args{
+				a: []string{"icmp"},
+				b: []string{},
+			},
+			want: []string{"icmp"},
+		},
+		{
+			name: "basic-a-1",
+			args: args{
+				a: []string{"icmp/1"},
+				b: []string{},
+			},
+			want: []string{"icmp/1"},
+		},
+		{
+			name: "basic-b",
+			args: args{
+				a: []string{},
+				b: []string{"icmp"},
+			},
+			want: []string{"icmp"},
+		},
+		{
+			name: "basic-b-1",
+			args: args{
+				a: []string{},
+				b: []string{"icmp/1"},
+			},
+			want: []string{"icmp/1"},
+		},
+		{
+			name: "basic-equal",
+			args: args{
+				a: []string{"icmp"},
+				b: []string{"icmp"},
+			},
+			want: []string{"icmp"},
+		},
+		{
+			name: "basic-equal-1",
+			args: args{
+				a: []string{"icmp/1"},
+				b: []string{"icmp/1"},
+			},
+			want: []string{"icmp/1"},
+		},
+		{
+			name: "double-a-base-1-2",
+			args: args{
+				a: []string{"icmp", "icmp/1", "icmp/2"},
+				b: []string{},
+			},
+			want: []string{"icmp"},
+		},
+		{
+			name: "double-a-1-1/1-1/2",
+			args: args{
+				a: []string{"icmp/1", "icmp/1/1", "icmp/1/2"},
+				b: []string{},
+			},
+			want: []string{"icmp/1"},
+		},
+		{
+			name: "double-a-1-2",
+			args: args{
+				a: []string{"icmp/1", "icmp/2"},
+				b: []string{},
+			},
+			want: []string{"icmp/1", "icmp/2"},
+		},
+		{
+			name: "double-ab-1-2",
+			args: args{
+				a: []string{"icmp/1", "icmp/2"},
+				b: []string{"icmp/1", "icmp/2"},
+			},
+			want: []string{"icmp/1", "icmp/2"},
+		},
+		{
+			name: "complex",
+			args: args{
+				a: []string{"icmp/1", "icmp/1/2"},
+				b: []string{"icmp", "icmp6"},
+			},
+			want: []string{"icmp", "icmp6"},
+		},
+		{
+			name: "very complex",
+			args: args{
+				a: []string{"icmp/1", "icmp/1/2", "icmp/1/3", "icmp/2/2"},
+				b: []string{"icmp/1", "icmp6"},
+			},
+			want: []string{"icmp/1", "icmp/2/2", "icmp6"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := extractNonTCPAndUDPProtocols(tt.args.a, tt.args.b); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("extractNonTCPAndUDPProtocols() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
