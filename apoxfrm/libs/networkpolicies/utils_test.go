@@ -457,6 +457,14 @@ func Test_extractNonTCPAndUDPProtocols(t *testing.T) {
 			want: []string{"icmp/1"},
 		},
 		{
+			name: "basic-b-icmp-1/1-1/2",
+			args: args{
+				a: []string{},
+				b: []string{"icmp", "icmp/1/1", "icmp/1/2"},
+			},
+			want: []string{"icmp"},
+		},
+		{
 			name: "basic-equal",
 			args: args{
 				a: []string{"icmp"},
