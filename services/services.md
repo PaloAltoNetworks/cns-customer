@@ -9,10 +9,10 @@ This also works when you have a direct PU to PU flows.
 On top of this, if you want to enable mTLS encryption between the workloads, you can do  it using TCP Services (if both server and client are not doing TLS, encryption is automatically enabled). 
 
 
-### Use Cases {#use-cases}
+### Use Cases
 
 
-### 1) Client communicates with a Server that is behind a K8s service {#1-client-communicates-with-a-server-that-is-behind-a-k8s-service}
+### 1) Client communicates with a Server that is behind a K8s service
 
 **I**n this scenario, both processing units are pods in a k8s cluster, deployed in the same k8s namespace. The client PU reaches out to the Server PU through a K8s service. 
 
@@ -184,7 +184,7 @@ The below image shows the flow logs in which source IP of the external client is
 ![alt_text](images/image5.png "image_tooltip")
 
  
-**3) External Network communicates with a Server that is behind a Load Balancer**
+### 3) External Network communicates with a Server that is behind a Load Balancer
 
 In this use case, the client is an External Network  and the Server is a Container PU deployed on a K8s cluster and exposed via a Network Load Balancer. 
 
