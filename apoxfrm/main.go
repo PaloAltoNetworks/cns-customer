@@ -166,7 +166,7 @@ func process(dir, file string, extraFiles []string) {
 }
 
 func usage() {
-	fmt.Println("apoxfrm -extnet-prefix customer:ext:name= -config-dir <directory> -config-file <yaml-file> [-extra-files <yaml-file1> <yaml-file2> ...]")
+	fmt.Println("apoxfrm -extnet-prefix comcast:ext:network= -config-dir <directory> -config-file <yaml-file> [-extra-files <yaml-file1> <yaml-file2> ...]")
 	fmt.Println("examples:")
 	fmt.Println("  apoxfrm -extnet-prefix customer:ext:name= -config-dir configs -config-file zone.yaml -extra-files root.yaml")
 	fmt.Println("  apoxfrm -extnet-prefix customer:ext:name= -config-dir configs -config-file tenant.yaml -extra-files root.yaml zone.yaml")
@@ -175,10 +175,10 @@ func usage() {
 func main() {
 
 	var extraFiles arrayFlags
-	directory := flag.String("config-dir", "configs", "configuation directory for yaml files")
-	file := flag.String("config-file", "root.yaml", "yaml configuation file")
+	directory := flag.String("config-dir", "tests/reexternalrefwv1v2policyconversiondetails/", "configuation directory for yaml files")
+	file := flag.String("config-file", "Tenant_A_policies.yaml", "yaml configuation file")
 	flag.Var(&extraFiles, "extra-files", "additional files needed to resolve extra external networks.")
-	prefix := flag.String("extnet-prefix", "", "prefix used in the tag to reference external networks")
+	prefix := flag.String("extnet-prefix", "comcast:ext:network=", "prefix used in the tag to reference external networks")
 	flag.Parse()
 
 	if *prefix == "" {
