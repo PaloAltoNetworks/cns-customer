@@ -1,4 +1,4 @@
-![alt_text <](images/image13.png "image_tooltip")
+![alt_text <](images/image13.png | width=100)
 
 
 # Encrypt traffic between resources protected by Enforcers.
