@@ -1,4 +1,4 @@
-![alt_text <](images/image13.png | width=100)
+![alt_text <](images/image13.png)
 
 
 # Encrypt traffic between resources protected by Enforcers.
