@@ -47,7 +47,7 @@ The  first step is to define the K8s Service. Go to Defend > Services > TCP Serv
 
  The next step is to define the target. The target is the pod that is connected to this service and protected by an Enforcer. 
  
- -  Under Processing Unit Selector, add the respective metadata the matches your target processing unit(s), such as `$identity=processingunit` and `$name=&lt;image name>`
+ -  Under Processing Unit Selector, add the respective metadata the matches your target processing unit(s), such as `$identity=processingunit` and `$name=<image name>`
 
  
 - Under port, add the port that your pod is listening on (target port)
