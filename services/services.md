@@ -1,4 +1,4 @@
-<img src="images/image13.png" width="70%">
+<img src="images/image13.png" width="30%">
 
 
 # Encrypt traffic between resources protected by Enforcers.
@@ -76,7 +76,7 @@ As we can see now, the client is able to reach out to the Server through a K8s s
 The first image displays the successful encrypted connection between the client and the server (the locker icon in the flow identifies that the Enforcers are encrypting the flow).
 
 
-<p align="center"><img src="images/image26.png" width="60%"></p>
+<p align="center"><img src="images/image26.png" width="40%"></p>
 
 
  While the second image below, shows the connection being established from the client PU perspective.
@@ -169,7 +169,7 @@ As we can see now, the client is able to reach out to the Server through a K8s s
 The first image displays the successful encrypted connection between the client and the server (the locker icon in the flow).
 
 
-<p align="center"><img src="images/image31.png" width="60%"></p>
+<p align="center"><img src="images/image31.png" width="50%"></p>
 
 
  While the second image below, shows the connection being established from the client PU perspective.
@@ -273,13 +273,13 @@ As we can see now, the client is able to reach out to the Server through a K8s s
 The first image displays the successful connection between the external client and the server with no TLS configuration.
 
 
-<p align="center"><img src="images/image3.png" width="70%"></p>
+<p align="center"><img src="images/image3.png" width="50%"></p>
 
 
 The second  image displays the successful encrypted connection between the external client and the server with TLS configuration (custom certificate).  
 
 
-<p align="center"><img src="images/image17.png" width="70%"></p>
+<p align="center"><img src="images/image17.png" width="50%"></p>
 
 
 While the third image below, shows the connection being established from the external client perspective.
