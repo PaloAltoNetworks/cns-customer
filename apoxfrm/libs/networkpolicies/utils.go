@@ -174,6 +174,23 @@ func extractProtocolsPorts(protocol string, servicePorts []string, restrictedPor
 	return ports
 }
 
+func appendUnique(a []string, b string) []string {
+
+	found := false
+	for _, val := range a {
+		if val == b {
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		a = append(a, b)
+	}
+
+	return a
+}
+
 func extractNonTCPAndUDPProtocols(a []string, b []string) []string {
 
 	sort.Strings(a)
@@ -224,7 +241,7 @@ func extractNonTCPAndUDPProtocols(a []string, b []string) []string {
 			continue
 		}
 
-		codeMap[code] = append(codeTypeList, parts[1])
+		codeMap[code] = appendUnique(codeTypeList, parts[1])
 		protoMap[rprotocol] = codeMap
 	}
 
@@ -272,7 +289,7 @@ func extractNonTCPAndUDPProtocols(a []string, b []string) []string {
 			continue
 		}
 
-		codeMap[code] = append(codeTypeList, parts[1])
+		codeMap[code] = appendUnique(codeTypeList, parts[1])
 		protoMap[sprotocol] = codeMap
 	}
 

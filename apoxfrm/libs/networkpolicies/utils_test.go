@@ -528,11 +528,63 @@ func Test_extractNonTCPAndUDPProtocols(t *testing.T) {
 			},
 			want: []string{"icmp/1", "icmp/2/2", "icmp6"},
 		},
+		{
+			name: "duplicates",
+			args: args{
+				a: []string{"icmp/8/0"},
+				b: []string{"icmp/8/0"},
+			},
+			want: []string{"icmp/8/0"},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := extractNonTCPAndUDPProtocols(tt.args.a, tt.args.b); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("extractNonTCPAndUDPProtocols() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_appendUnique(t *testing.T) {
+	type args struct {
+		a []string
+		b string
+	}
+	tests := []struct {
+		name string
+		args args
+		want []string
+	}{
+		{
+			name: "empty",
+			args: args{
+				a: []string{},
+				b: "a",
+			},
+			want: []string{"a"},
+		},
+		{
+			name: "non empty",
+			args: args{
+				a: []string{"c"},
+				b: "a",
+			},
+			want: []string{"c", "a"},
+		},
+		{
+			name: "duplicate",
+			args: args{
+				a: []string{"a"},
+				b: "a",
+			},
+			want: []string{"a"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := appendUnique(tt.args.a, tt.args.b); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("appendUnique() = %v, want %v", got, tt.want)
 			}
 		})
 	}
